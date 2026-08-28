@@ -43,8 +43,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={gotu.variable}>
-      <body>{children}</body>
+    <html lang="en" className={gotu.variable} suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

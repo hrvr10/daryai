@@ -124,118 +124,28 @@ body {
   color: var(--olive);
 }
 
-/* --- form --- */
+/* --- whatsapp float --- */
 
-.form {
-  max-width: 440px;
-}
-
-.row {
+.wa {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 3;
   display: flex;
-  gap: 10px;
-  align-items: stretch;
-  flex-wrap: wrap;
-}
-
-.field {
-  flex: 1 1 220px;
-  min-width: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  padding: 14px 15px;
-  color: var(--charcoal);
-  background: rgba(244, 243, 236, 0.5);
-  border: 1px solid rgba(31, 31, 31, 0.22);
-  border-radius: 2px;
-  outline: none;
-  transition: background 0.2s, border-color 0.2s;
-  -webkit-appearance: none;
-}
-
-.field::placeholder {
-  color: rgba(31, 31, 31, 0.42);
-}
-
-.field:focus {
-  background: rgba(244, 243, 236, 0.9);
-  border-color: var(--charcoal);
-}
-
-.btn {
-  font-family: inherit;
-  font-size: 14px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 14px 26px;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
   color: var(--oat);
-  background: var(--charcoal);
-  border: 1px solid var(--charcoal);
-  border-radius: 2px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.2s;
+  background: #25d366;
+  box-shadow: 0 6px 20px rgba(31, 31, 31, 0.28);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.btn:hover:not(:disabled) {
-  opacity: 0.82;
-}
-
-.btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.note {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.55;
-  margin-top: 12px;
-  min-height: 20px;
-}
-
-.note.err {
-  color: #7a2f24;
-}
-
-.note.ok {
-  color: var(--charcoal);
-}
-
-.hp {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.thanks {
-  max-width: 440px;
-}
-
-.thanks h2 {
-  font-size: clamp(20px, 4.5vw, 27px);
-  font-weight: 400;
-  margin: 0 0 10px;
-}
-
-.thanks p {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--olive);
-  margin: 0 0 18px;
-}
-
-.textlink {
-  color: var(--charcoal);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(31, 31, 31, 0.35);
-  padding-bottom: 1px;
-}
-
-.textlink:hover {
-  border-bottom-color: var(--charcoal);
+.wa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(31, 31, 31, 0.34);
 }
 
 /* --- footer --- */
@@ -268,9 +178,6 @@ body {
   }
   .countdown {
     gap: 20px;
-  }
-  .btn {
-    width: 100%;
   }
 }
 
