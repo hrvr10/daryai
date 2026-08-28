@@ -1,0 +1,282 @@
+:root {
+  --charcoal: #1f1f1f;
+  --sage: #b9b080;
+  --olive: #6e6849;
+  --oat: #f4f3ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--sage);
+  color: var(--charcoal);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-gotu), "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* The animated cloth sits behind everything and never eats a tap. */
+.cloth {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px 24px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: var(--olive);
+  text-transform: uppercase;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.wordmark {
+  font-size: clamp(52px, 15vw, 132px);
+  line-height: 0.95;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+  margin: 0 0 18px;
+  cursor: default;
+  user-select: none;
+  /* nudged right by half the tracking so it optically aligns left */
+  text-indent: 0.05em;
+}
+
+.tagline {
+  font-size: clamp(17px, 3.4vw, 23px);
+  letter-spacing: 0.015em;
+  margin: 0 0 26px;
+}
+
+.blurb {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--olive);
+  max-width: 420px;
+  margin: 0 0 34px;
+}
+
+.blurb strong {
+  color: var(--charcoal);
+  font-weight: 600;
+}
+
+/* --- countdown --- */
+
+.countdown {
+  display: flex;
+  gap: 26px;
+  margin-bottom: 36px;
+}
+
+.unit {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.unit .num {
+  font-size: clamp(26px, 6vw, 36px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit .lab {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+
+/* --- form --- */
+
+.form {
+  max-width: 440px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.field {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  padding: 14px 15px;
+  color: var(--charcoal);
+  background: rgba(244, 243, 236, 0.5);
+  border: 1px solid rgba(31, 31, 31, 0.22);
+  border-radius: 2px;
+  outline: none;
+  transition: background 0.2s, border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+.field::placeholder {
+  color: rgba(31, 31, 31, 0.42);
+}
+
+.field:focus {
+  background: rgba(244, 243, 236, 0.9);
+  border-color: var(--charcoal);
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 26px;
+  color: var(--oat);
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal);
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.note {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 12px;
+  min-height: 20px;
+}
+
+.note.err {
+  color: #7a2f24;
+}
+
+.note.ok {
+  color: var(--charcoal);
+}
+
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.thanks {
+  max-width: 440px;
+}
+
+.thanks h2 {
+  font-size: clamp(20px, 4.5vw, 27px);
+  font-weight: 400;
+  margin: 0 0 10px;
+}
+
+.thanks p {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--olive);
+  margin: 0 0 18px;
+}
+
+.textlink {
+  color: var(--charcoal);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(31, 31, 31, 0.35);
+  padding-bottom: 1px;
+}
+
+.textlink:hover {
+  border-bottom-color: var(--charcoal);
+}
+
+/* --- footer --- */
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 18px;
+  border-top: 1px solid rgba(110, 104, 73, 0.42);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--olive);
+}
+
+.bottom a {
+  color: var(--charcoal);
+  text-decoration: none;
+}
+
+.bottom a:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+  .shell {
+    padding: 20px 20px 20px;
+  }
+  .countdown {
+    gap: 20px;
+  }
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
