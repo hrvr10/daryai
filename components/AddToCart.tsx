@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useCart } from "@/lib/CartContext";
+import type { Product } from "@/lib/products";
+
+export default function AddToCart({ product }: { product: Product }) {
+  const { add } = useCart();
+  const sizeLabels = product.sizes.map((s) => s.label);
+  const [size, setSize] = useState<string>(sizeLabels[0] ?? "");
+  const [added, setAdded] = useState(false);
+
+  const buyable = product.active && product.price > 0;
+
+  if (!buyable) {
+    return (
+      <div className="rounded-md bg-neutral-100 px-4 py-3 text-sm text-neutral-500">
+        Not available for purchase yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {sizeLabels.length > 0 && (
+        <div>
+          <div className="mb-2 text-sm font-medium">Size</div>
+          <div className="flex flex-wrap gap-2">
+            {sizeLabels.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSize(s)}
+                className={`min-w-[3rem] rounded-md border px-3 py-2 text-sm ${
+                  size === s
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300 hover:border-neutral-500"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => {
+          add({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            size,
+          });
+          setAdded(true);
+        }}
+        className="w-full rounded-md bg-black px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+      >
+        Add to cart
+      </button>
+
+      {added && (
+        <div className="flex items-center justify-between rounded-md bg-neutral-100 px-4 py-3 text-sm">
+          <span>Added to cart.</span>
+          <Link href="/cart" className="font-medium underline">
+            Go to cart
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}

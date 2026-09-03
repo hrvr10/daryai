@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  poweredByHeader: false,
+  images: {
+    // Product images are served from /public, no remote optimization needed.
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
