@@ -10,13 +10,14 @@ import {
 import ProductImage from "./ProductImage";
 import { formatPrice, type Product } from "@/lib/products";
 
-type Cols = 3 | 4 | 6;
+type Cols = 3 | 4;
 const COLS_KEY = "daryai_cols";
 
+// Mobile always shows 3 and has no toggle; sm+ picks up the chosen column
+// count (3 or 4) via these responsive classes.
 const colClass: Record<Cols, string> = {
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-  6: "grid-cols-6",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-4",
 };
 
 export default function Feed() {
@@ -32,7 +33,7 @@ export default function Feed() {
   useEffect(() => {
     try {
       const saved = Number(localStorage.getItem(COLS_KEY));
-      if (saved === 3 || saved === 4 || saved === 6) setCols(saved);
+      if (saved === 3 || saved === 4) setCols(saved);
     } catch {
       /* ignore */
     }
@@ -91,9 +92,9 @@ export default function Feed() {
 
   return (
     <div>
-      <div className="flex items-center justify-end gap-1 px-4 pb-3 sm:px-0">
+      <div className="hidden items-center justify-end gap-1 pb-3 sm:flex">
         <span className="mr-1 text-xs text-neutral-400">Grid</span>
-        {([3, 4, 6] as Cols[]).map((c) => (
+        {([3, 4] as Cols[]).map((c) => (
           <button
             key={c}
             type="button"
@@ -110,12 +111,12 @@ export default function Feed() {
         ))}
       </div>
 
-      <div className={`grid ${colClass[cols]} gap-0.5 sm:gap-1`}>
+      <div className={`grid grid-cols-3 ${colClass[cols]} gap-0.5 sm:gap-1`}>
         {items.map((product, i) => (
           <Link
             key={`${product.id}-${i}`}
             href={`/product/${product.id}`}
-            className="group relative block aspect-square overflow-hidden bg-neutral-100"
+            className="group relative block aspect-[9/16] overflow-hidden bg-neutral-100"
           >
             <ProductImage
               src={product.image}
