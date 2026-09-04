@@ -1,0 +1,230 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { formatPrice, type Product } from "@/lib/products";
+
+export default function ReelFeed() {
+  const [items, setItems] = useState<Product[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const [tapIcon, setTapIcon] = useState<"play" | "pause" | null>(null);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const cursorRef = useRef<string | null>(null);
+  const loadingRef = useRef(false);
+  const doneRef = useRef(false);
+  const tapIconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadMore = useCallback(async () => {
+    if (loadingRef.current || doneRef.current) return;
+    loadingRef.current = true;
+    try {
+      const url = new URL("/api/products", window.location.origin);
+      url.searchParams.set("limit", "8");
+      if (cursorRef.current) url.searchParams.set("cursor", cursorRef.current);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) return;
+      const incoming = data.items as Product[];
+      setItems((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...incoming.filter((p) => !seen.has(p.id))];
+      });
+      cursorRef.current = data.nextCursor;
+      if (!data.nextCursor || incoming.length === 0) doneRef.current = true;
+    } finally {
+      loadingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMore();
+  }, [loadMore]);
+
+  // Load the next page once the viewer is near the end of what's loaded.
+  useEffect(() => {
+    if (activeIndex >= items.length - 3) loadMore();
+  }, [activeIndex, items.length, loadMore]);
+
+  // Track which slide is centred in the scroller.
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+            const idx = Number((entry.target as HTMLElement).dataset.index);
+            if (!Number.isNaN(idx)) setActiveIndex(idx);
+          }
+        }
+      },
+      { root, threshold: [0.6] },
+    );
+    const slides = root.querySelectorAll("[data-index]");
+    slides.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, [items.length]);
+
+  // Play the active video, pause and rewind the rest.
+  useEffect(() => {
+    videoRefs.current.forEach((video, idx) => {
+      if (idx === activeIndex) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [activeIndex]);
+
+  function flashIcon(icon: "play" | "pause") {
+    setTapIcon(icon);
+    if (tapIconTimer.current) clearTimeout(tapIconTimer.current);
+    tapIconTimer.current = setTimeout(() => setTapIcon(null), 550);
+  }
+
+  function togglePlay(index: number) {
+    const video = videoRefs.current.get(index);
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      flashIcon("play");
+    } else {
+      video.pause();
+      flashIcon("pause");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black">
+      <Link
+        href="/"
+        aria-label="Close reels"
+        className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M6 6l12 12M18 6 6 18"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </Link>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMuted((m) => !m);
+        }}
+        aria-label={muted ? "Unmute" : "Mute"}
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+      >
+        {muted ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M4 9v6h4l5 4V5L8 9H4Z"
+              fill="currentColor"
+            />
+            <path
+              d="M17 8l4 8M21 8l-4 8"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" />
+            <path
+              d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
+      </button>
+
+      <div
+        ref={containerRef}
+        className="h-full w-full snap-y snap-mandatory overflow-y-scroll scroll-smooth"
+      >
+        {items.map((product, i) => (
+          <div
+            key={`${product.id}-${i}`}
+            data-index={i}
+            onClick={() => togglePlay(i)}
+            className="relative flex h-full w-full snap-start items-center justify-center bg-neutral-950"
+          >
+            {product.videoUrl ? (
+              <video
+                ref={(el) => {
+                  if (el) videoRefs.current.set(i, el);
+                  else videoRefs.current.delete(i);
+                }}
+                src={product.videoUrl}
+                poster={product.image || undefined}
+                muted={muted}
+                loop
+                playsInline
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.image}
+                alt={product.name}
+                className="h-full w-full object-contain"
+              />
+            )}
+
+            {tapIcon && i === activeIndex && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="rounded-full bg-black/40 p-5 text-white">
+                  {tapIcon === "play" ? (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5v14l11-7Z" />
+                    </svg>
+                  ) : (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-20 pt-16 sm:pb-10">
+              <div className="mb-3 text-sm text-white">
+                <div className="font-medium">{product.name}</div>
+                {product.price > 0 && (
+                  <div className="text-white/80">
+                    {formatPrice(product.price, product.currency)}
+                  </div>
+                )}
+              </div>
+              <Link
+                href={`/product/${product.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-auto inline-block rounded-full border border-white/50 bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md"
+              >
+                Shop now
+              </Link>
+            </div>
+          </div>
+        ))}
+
+        {items.length === 0 && (
+          <div className="flex h-full w-full items-center justify-center text-sm text-white/60">
+            No reels yet.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
