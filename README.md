@@ -86,11 +86,13 @@ NEXT_PUBLIC_SITE_URL=https://YOUR-DOMAIN
    **Sync reels now**. Reels arrive **hidden**; open `/admin`, set a price and
    sizes, tick **Live**.
 
-> Instagram media URLs expire after ~2 days. Re-sync regularly — either click
-> Sync, or hit `POST /api/instagram/sync` from a cron (e.g. GitHub Actions,
-> Vercel Cron, cron-job.org). That endpoint needs the admin session cookie, so
-> for an unattended cron add a shared-secret check (see
-> `app/api/instagram/sync/route.ts`).
+> Instagram media URLs expire after ~2 days, so this also syncs on its own
+> **once a day** via Vercel Cron (see [vercel.json](vercel.json) and
+> `app/api/cron/sync-instagram/route.ts`) — set `CRON_SECRET` (any random
+> string) in the project's Vercel env vars and it starts working on the next
+> deploy, no extra setup. You can still click **Sync reels now** any time for
+> an immediate pull. Vercel's free (Hobby) plan allows cron jobs to run once a
+> day, which is exactly what this uses.
 
 For anyone other than app testers to connect, the Meta app needs **App Review**
 for `instagram_business_basic`.

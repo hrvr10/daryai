@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
-import { useCart } from "@/lib/CartContext";
+import { useEffect, useState } from "react";
+import { useCart, type CartLine } from "@/lib/CartContext";
 import { formatPrice } from "@/lib/products";
 import { indianStates } from "@/lib/indianStates";
+import { getBuyNow, clearBuyNow } from "@/lib/buyNow";
 import OrderSummary from "@/components/checkout/OrderSummary";
 
 const RZP_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -32,14 +33,37 @@ function loadRazorpay(): Promise<boolean> {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { lines, subtotal, count, clear } = useCart();
+  const cart = useCart();
+  const [buyNowLine, setBuyNowLine] = useState<CartLine | null>(null);
+  const [isBuyNow, setIsBuyNow] = useState(false);
+  const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // "Buy now" checks out a single item held in sessionStorage instead of the
+  // shared cart — read it once on mount (needs `window`, so this can't run
+  // during the server render).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "buynow") {
+      setIsBuyNow(true);
+      setBuyNowLine(getBuyNow());
+    }
+    setReady(true);
+  }, []);
+
+  const lines = isBuyNow ? (buyNowLine ? [buyNowLine] : []) : cart.lines;
+  const subtotal = isBuyNow
+    ? (buyNowLine ? buyNowLine.price * buyNowLine.qty : 0)
+    : cart.subtotal;
+  const count = lines.length;
+
+  if (!ready) return null;
 
   if (count === 0) {
     return (
       <div className="px-4 py-10 text-center text-sm text-neutral-500 sm:px-0">
-        Your cart is empty.{" "}
+        {isBuyNow ? "Nothing to buy." : "Your cart is empty."}{" "}
         <Link href="/" className="font-medium text-black underline">
           Go shop
         </Link>
@@ -118,7 +142,8 @@ export default function CheckoutPage() {
             });
             const vd = await vr.json();
             if (!vr.ok) throw new Error(vd.error || "Verification failed");
-            clear();
+            if (isBuyNow) clearBuyNow();
+            else cart.clear();
             router.push(`/checkout/success?order=${vd.orderId}`);
           } catch (err: any) {
             setError(err.message || "Payment verification failed");
