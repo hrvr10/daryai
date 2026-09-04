@@ -25,7 +25,7 @@ export default async function ProductPage({
       </Link>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div className="aspect-square overflow-hidden rounded-md bg-neutral-100">
+        <div className="aspect-[9/16] overflow-hidden rounded-md bg-neutral-100">
           {product.videoUrl ? (
             <video
               src={product.videoUrl}
