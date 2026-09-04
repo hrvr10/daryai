@@ -29,6 +29,11 @@ export default function Feed() {
   const [cols, setCols] = useState<Cols>(3);
   const sentinel = useRef<HTMLDivElement | null>(null);
   const started = useRef(false);
+  // Refs, not state, so the guard is correct even if the "load first page"
+  // effect and the infinite-scroll observer's initial (already-intersecting)
+  // callback both fire before either state update has landed.
+  const loadingRef = useRef(false);
+  const doneRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -49,7 +54,8 @@ export default function Feed() {
   };
 
   const loadMore = useCallback(async () => {
-    if (loading || done) return;
+    if (loadingRef.current || doneRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -59,15 +65,23 @@ export default function Feed() {
       const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load");
-      setItems((prev) => [...prev, ...(data.items as Product[])]);
+      const incoming = data.items as Product[];
+      setItems((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...incoming.filter((p) => !seen.has(p.id))];
+      });
       setCursor(data.nextCursor);
-      if (!data.nextCursor || data.items.length === 0) setDone(true);
+      if (!data.nextCursor || incoming.length === 0) {
+        doneRef.current = true;
+        setDone(true);
+      }
     } catch (e: any) {
       setError(e.message || "Something went wrong");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [cursor, loading, done]);
+  }, [cursor]);
 
   // First page.
   useEffect(() => {
