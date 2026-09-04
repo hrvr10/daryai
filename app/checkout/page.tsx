@@ -5,8 +5,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/lib/CartContext";
 import { formatPrice } from "@/lib/products";
+import { indianStates } from "@/lib/indianStates";
+import OrderSummary from "@/components/checkout/OrderSummary";
 
 const RZP_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+
+const trustLinks = [
+  { href: "/returns", label: "Refund policy" },
+  { href: "/shipping", label: "Shipping" },
+  { href: "/privacy", label: "Privacy policy" },
+  { href: "/terms", label: "Terms of service" },
+  { href: "/contact", label: "Contact" },
+];
 
 function loadRazorpay(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -43,11 +53,23 @@ export default function CheckoutPage() {
     setError(null);
 
     const form = new FormData(e.currentTarget);
+    const get = (k: string) => String(form.get(k) || "").trim();
+
+    const name = [get("firstName"), get("lastName")].filter(Boolean).join(" ");
+    const address = [
+      get("address1"),
+      get("address2"),
+      [get("city"), get("state")].filter(Boolean).join(", "),
+      get("pincode"),
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     const customer = {
-      name: String(form.get("name") || ""),
-      email: String(form.get("email") || ""),
-      phone: String(form.get("phone") || ""),
-      address: String(form.get("address") || ""),
+      name,
+      email: get("email"),
+      phone: get("phone"),
+      address,
     };
 
     try {
@@ -116,38 +138,121 @@ export default function CheckoutPage() {
 
   return (
     <div className="px-4 py-5 sm:px-0">
-      <h1 className="mb-4 text-xl font-semibold tracking-tight">Checkout</h1>
-
-      <div className="grid gap-8 sm:grid-cols-2">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field label="Full name" name="name" autoComplete="name" required />
-          <Field
-            label="Email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-          />
-          <Field
-            label="Phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            required
-          />
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="address">
-              Shipping address
-            </label>
-            <textarea
-              id="address"
-              name="address"
-              required
-              rows={3}
-              autoComplete="street-address"
-              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
-            />
+      <div className="grid gap-x-10 sm:grid-cols-2">
+        {/* Mobile-only collapsed summary, above the form — like Shopify. */}
+        <details className="group mb-2 rounded-md border border-neutral-200 sm:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm">
+            <span className="flex items-center gap-1.5 text-neutral-600">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                className="transition group-open:rotate-180"
+                aria-hidden
+              >
+                <path
+                  d="M1 3l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  fill="none"
+                />
+              </svg>
+              Show order summary
+            </span>
+            <span className="font-medium">{formatPrice(subtotal)}</span>
+          </summary>
+          <div className="border-t border-neutral-200 p-4">
+            <OrderSummary lines={lines} subtotal={subtotal} />
           </div>
+        </details>
+
+        {/* Desktop summary panel */}
+        <div className="order-2 hidden sm:block">
+          <div className="sticky top-20 rounded-md border border-neutral-200 bg-neutral-50 p-5">
+            <OrderSummary lines={lines} subtotal={subtotal} />
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="order-1 space-y-8 py-5 sm:py-0">
+          <section>
+            <h2 className="mb-3 text-base font-semibold">Contact</h2>
+            <div className="space-y-3">
+              <Field label="Email" name="email" type="email" autoComplete="email" required />
+              <Field label="Phone" name="phone" type="tel" autoComplete="tel" required />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-base font-semibold">Delivery</h2>
+            <div className="space-y-3">
+              <SelectField label="Country/Region" name="country" defaultValue="India">
+                <option value="India">India</option>
+              </SelectField>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="First name" name="firstName" autoComplete="given-name" required />
+                <Field label="Last name" name="lastName" autoComplete="family-name" required />
+              </div>
+
+              <Field
+                label="Address"
+                name="address1"
+                autoComplete="address-line1"
+                required
+              />
+              <Field
+                label="Apartment, suite, etc. (optional)"
+                name="address2"
+                autoComplete="address-line2"
+              />
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <Field label="City" name="city" autoComplete="address-level2" required />
+                </div>
+                <SelectField
+                  label="State"
+                  name="state"
+                  defaultValue=""
+                  autoComplete="address-level1"
+                  required
+                >
+                  <option value="" disabled>
+                    Choose
+                  </option>
+                  {indianStates.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </SelectField>
+                <Field
+                  label="PIN code"
+                  name="pincode"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  autoComplete="postal-code"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-base font-semibold">Payment</h2>
+            <p className="mb-3 text-xs text-neutral-500">
+              All transactions are secure and encrypted.
+            </p>
+            <div className="rounded-md border border-neutral-800 bg-neutral-50 p-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>Razorpay Secure (UPI, Cards, Netbanking, Wallets)</span>
+              </div>
+              <p className="mt-2 text-xs text-neutral-500">
+                You&apos;ll complete payment in a secure Razorpay window.
+              </p>
+            </div>
+          </section>
 
           {error && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -162,32 +267,15 @@ export default function CheckoutPage() {
           >
             {busy ? "Starting payment…" : `Pay ${formatPrice(subtotal)}`}
           </button>
-          <p className="text-xs text-neutral-400">
-            Secure payment via Razorpay.
-          </p>
-        </form>
 
-        <div className="space-y-3 rounded-md bg-neutral-50 p-4 text-sm">
-          <div className="font-medium">Order summary</div>
-          <ul className="space-y-2">
-            {lines.map((line) => (
-              <li
-                key={`${line.id}-${line.size}`}
-                className="flex justify-between gap-4 text-neutral-600"
-              >
-                <span>
-                  {line.name}
-                  {line.size ? ` · ${line.size}` : ""} × {line.qty}
-                </span>
-                <span>{formatPrice(line.price * line.qty)}</span>
-              </li>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 border-t border-neutral-200 pt-4 text-xs text-neutral-500">
+            {trustLinks.map((l) => (
+              <Link key={l.href} href={l.href} className="hover:text-black hover:underline">
+                {l.label}
+              </Link>
             ))}
-          </ul>
-          <div className="flex justify-between border-t border-neutral-200 pt-3 font-medium">
-            <span>Total</span>
-            <span>{formatPrice(subtotal)}</span>
-          </div>
-        </div>
+          </nav>
+        </form>
       </div>
     </div>
   );
@@ -215,6 +303,33 @@ function Field({
         className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
         {...rest}
       />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  children,
+  ...rest
+}: {
+  label: string;
+  name: string;
+  children: React.ReactNode;
+} & React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium" htmlFor={name}>
+        {label}
+      </label>
+      <select
+        id={name}
+        name={name}
+        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-black"
+        {...rest}
+      >
+        {children}
+      </select>
     </div>
   );
 }
