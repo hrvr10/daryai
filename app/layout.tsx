@@ -28,8 +28,10 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased">
         <CartProvider>
           <Header />
-          <main className="mx-auto max-w-3xl px-0 sm:px-4">{children}</main>
-          <footer className="mx-auto max-w-3xl px-4 py-10 text-center text-xs text-neutral-400">
+          <main className="mx-auto max-w-6xl px-0 sm:px-6 lg:px-8">
+            {children}
+          </main>
+          <footer className="mx-auto mt-10 max-w-6xl border-t border-neutral-100 px-4 py-10 text-center text-xs text-neutral-400 sm:px-6 lg:px-8">
             <nav className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
               {footerLinks.map((l) => (
                 <Link key={l.href} href={l.href} className="hover:text-black">

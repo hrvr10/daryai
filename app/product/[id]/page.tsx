@@ -16,7 +16,7 @@ export default async function ProductPage({
   if (!product) notFound();
 
   return (
-    <div className="px-4 py-5 sm:px-0">
+    <div className="mx-auto max-w-4xl px-4 py-5 sm:px-0 sm:py-8">
       <Link
         href="/"
         className="mb-4 inline-block text-sm text-neutral-500 hover:text-black"
@@ -24,8 +24,8 @@ export default async function ProductPage({
         ← Back to feed
       </Link>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="aspect-[9/16] overflow-hidden rounded-md bg-neutral-100">
+      <div className="grid gap-8 sm:grid-cols-2 sm:gap-10">
+        <div className="aspect-[9/16] overflow-hidden rounded-md bg-neutral-100 sm:mx-auto sm:max-w-sm">
           {product.videoUrl ? (
             <video
               src={product.videoUrl}

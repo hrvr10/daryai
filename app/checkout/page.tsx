@@ -137,8 +137,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="px-4 py-5 sm:px-0">
-      <div className="grid gap-x-10 sm:grid-cols-2">
+    <div className="mx-auto max-w-5xl px-4 py-5 sm:px-0 sm:py-8">
+      <div className="grid gap-x-16 sm:grid-cols-2">
         {/* Mobile-only collapsed summary, above the form — like Shopify. */}
         <details className="group mb-2 rounded-md border border-neutral-200 sm:hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm">

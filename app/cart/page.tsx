@@ -9,8 +9,10 @@ export default function CartPage() {
   const { lines, subtotal, setQty, remove, count } = useCart();
 
   return (
-    <div className="px-4 py-5 sm:px-0">
-      <h1 className="mb-4 text-xl font-semibold tracking-tight">Your cart</h1>
+    <div className="mx-auto max-w-2xl px-4 py-5 sm:px-0 sm:py-8">
+      <h1 className="mb-4 text-xl font-semibold tracking-tight sm:text-2xl">
+        Your cart
+      </h1>
 
       {count === 0 ? (
         <div className="rounded-md border border-neutral-200 p-8 text-center text-sm text-neutral-500">
@@ -26,7 +28,7 @@ export default function CartPage() {
               <li key={`${line.id}-${line.size}`} className="flex gap-4 py-4">
                 <Link
                   href={`/product/${line.id}`}
-                  className="h-20 w-20 shrink-0 overflow-hidden rounded bg-neutral-100"
+                  className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-neutral-100 sm:h-24 sm:w-24"
                 >
                   <ProductImage
                     src={line.image}
