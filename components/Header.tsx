@@ -11,7 +11,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="text-lg font-semibold tracking-tight sm:text-xl"
+          className="text-base font-normal uppercase tracking-[0.25em] sm:text-lg"
         >
           daryai
         </Link>
