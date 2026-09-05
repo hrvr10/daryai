@@ -115,7 +115,7 @@ export default function Feed({
     <div>
       <div className="flex items-center justify-between gap-4 px-4 py-6 sm:px-0 sm:py-10">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">
             New in
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
