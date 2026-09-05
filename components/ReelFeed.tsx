@@ -19,6 +19,7 @@ export default function ReelFeed() {
   const [muted, setMuted] = useState(true);
   const [tapIcon, setTapIcon] = useState<"play" | "pause" | null>(null);
   const [buffering, setBuffering] = useState(false);
+  const [readyVideos, setReadyVideos] = useState<Set<number>>(new Set());
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
@@ -221,14 +222,23 @@ export default function ReelFeed() {
               onClick={() => togglePlay(i)}
               className="relative flex h-full w-full snap-start items-center justify-center bg-neutral-950"
             >
-              {product.videoUrl && isNear ? (
+              {/* Poster stays mounted underneath for every slide, so a
+                  swipe never shows a blank frame. The video crossfades in
+                  on top only once it actually has a frame ready — that's
+                  what removes the poster-then-video "pop". */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={product.image}
+                alt={product.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {product.videoUrl && isNear && (
                 <video
                   ref={(el) => {
                     if (el) videoRefs.current.set(i, el);
                     else videoRefs.current.delete(i);
                   }}
                   src={product.videoUrl}
-                  poster={product.image || undefined}
                   muted={muted}
                   loop
                   playsInline
@@ -236,16 +246,14 @@ export default function ReelFeed() {
                   // ahead of time; anything a swipe further back only
                   // needs its metadata (it's already been watched).
                   preload={distance >= 0 ? "auto" : "metadata"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                // Out of the preload window (or no video) — just the
-                // poster. Costs nothing until this slide gets close.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
+                  onLoadedData={() =>
+                    setReadyVideos((prev) =>
+                      prev.has(i) ? prev : new Set(prev).add(i),
+                    )
+                  }
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-150 ${
+                    readyVideos.has(i) ? "opacity-100" : "opacity-0"
+                  }`}
                 />
               )}
 

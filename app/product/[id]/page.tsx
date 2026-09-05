@@ -7,7 +7,12 @@ import DeliveryEstimate from "@/components/DeliveryEstimate";
 import { getProductById } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 
-export const dynamic = "force-dynamic";
+// Was force-dynamic, which also blocks Next's Link prefetching — every
+// click did a full round trip (server render + Firestore fetch) with no
+// head start. Products don't change second-to-second, so cache the page
+// for a bit instead: first visit renders it, everyone after gets it
+// instantly while a fresh copy revalidates in the background.
+export const revalidate = 60;
 
 export default async function ProductPage({
   params,
