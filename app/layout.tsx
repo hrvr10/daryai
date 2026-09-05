@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider } from "@/lib/CartContext";
 import SiteChrome from "@/components/SiteChrome";
-import CustomCursor from "@/components/CustomCursor";
 
 const gotu = localFont({
   src: "./fonts/Gotu-Regular.woff2",
@@ -27,7 +26,6 @@ export default function RootLayout({
         <CartProvider>
           <SiteChrome>{children}</SiteChrome>
         </CartProvider>
-        <CustomCursor />
       </body>
     </html>
   );

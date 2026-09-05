@@ -7,7 +7,7 @@ export default function Header() {
   const { count } = useCart();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-neutral-200/70 bg-white/70 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-brand-200/60 bg-brand-50/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         <Link
           href="/"

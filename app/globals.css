@@ -16,17 +16,6 @@ body {
   background: #fff;
 }
 
-/* Native cursor hidden only where the custom glass cursor is active, and
-   only outside form fields — hiding the text-input caret cursor is bad UX. */
-.custom-cursor-active {
-  cursor: none;
-}
-.custom-cursor-active input,
-.custom-cursor-active textarea,
-.custom-cursor-active select {
-  cursor: auto;
-}
-
 @keyframes tile-in {
   from {
     opacity: 0;
