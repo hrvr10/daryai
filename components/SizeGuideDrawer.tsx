@@ -6,7 +6,7 @@ import SizeGuide from "./SizeGuide";
 /**
  * Renders as a row matching the other accordion items (same title + "+"
  * treatment), but instead of expanding in place it opens a slide-over
- * panel from the left. Kept as its own overlay — not nested inside the
+ * panel from the right. Kept as its own overlay — not nested inside the
  * accordion's grid-rows expand — so opening it never changes the height
  * of the info column next to the gallery (that was stretching the video
  * taller than its own aspect ratio wants, which read as it "zooming").
@@ -51,8 +51,8 @@ export default function SizeGuideDrawer() {
           role="dialog"
           aria-modal="true"
           aria-label="Size guide"
-          className={`absolute inset-y-0 left-0 flex w-[88vw] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
-            open ? "translate-x-0" : "-translate-x-full"
+          className={`absolute inset-y-0 right-0 flex w-[88vw] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+            open ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">

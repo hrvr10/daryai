@@ -19,6 +19,12 @@ export default function FeedTile({
   // tiles once they're actually on screen (there are only ever a handful
   // at a time) so a hover just resumes an already-downloading video.
   const [inView, setInView] = useState(false);
+  // Once a video has played, the browser stops honouring `poster` — pausing
+  // and seeking back to 0 shows the video's own first frame, which can
+  // look different from the curated Instagram cover. Keeping the cover
+  // image as its own layer and only fading the video in while hovered
+  // means letting go always reveals the exact same cover shot again.
+  const [hovering, setHovering] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -37,30 +43,34 @@ export default function FeedTile({
       href={`/product/${product.id}`}
       className="group relative block aspect-[9/16] animate-tile-in overflow-hidden bg-neutral-100 transition-shadow duration-300 hover:shadow-xl hover:shadow-black/10"
       style={{ animationDelay: `${Math.min(index, 11) * 40}ms` }}
-      onMouseEnter={() => videoRef.current?.play().catch(() => {})}
+      onMouseEnter={() => {
+        setHovering(true);
+        videoRef.current?.play().catch(() => {});
+      }}
       onMouseLeave={() => {
+        setHovering(false);
         const v = videoRef.current;
         if (!v) return;
         v.pause();
         v.currentTime = 0;
       }}
     >
-      {product.videoUrl ? (
+      <ProductImage
+        src={product.image}
+        alt={product.name}
+        className="h-full w-full transition duration-300 group-hover:scale-105"
+      />
+      {product.videoUrl && (
         <video
           ref={videoRef}
           src={product.videoUrl}
-          poster={product.image || undefined}
           muted
           loop
           playsInline
           preload={inView ? "auto" : "none"}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-        />
-      ) : (
-        <ProductImage
-          src={product.image}
-          alt={product.name}
-          className="h-full w-full transition duration-300 group-hover:scale-105"
+          className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-300 group-hover:scale-105 ${
+            hovering ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition group-hover:opacity-100">

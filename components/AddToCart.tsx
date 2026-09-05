@@ -53,10 +53,10 @@ export default function AddToCart({ product }: { product: Product }) {
                 key={c}
                 type="button"
                 onClick={() => setColor(c)}
-                className={`rounded-md border px-3 py-2 text-sm transition-all duration-150 ${
+                className={`rounded-full border px-4 py-2.5 text-sm transition-all duration-150 ${
                   color === c
-                    ? "border-brand-700 bg-brand-700 text-white"
-                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-brand-600"
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-neutral-500"
                 }`}
               >
                 {c}
@@ -75,10 +75,10 @@ export default function AddToCart({ product }: { product: Product }) {
                 key={s}
                 type="button"
                 onClick={() => setSize(s)}
-                className={`min-w-[3rem] rounded-md border px-3 py-2 text-sm transition-all duration-150 ${
+                className={`min-w-[3.25rem] rounded-full border px-4 py-2.5 text-sm transition-all duration-150 ${
                   size === s
-                    ? "border-brand-700 bg-brand-700 text-white"
-                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-brand-600"
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-neutral-500"
                 }`}
               >
                 {s}
@@ -88,15 +88,30 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <button
           type="button"
           onClick={() => {
             add(line);
             setAdded(true);
           }}
-          className="w-full rounded-md border border-brand-700 bg-white px-4 py-3 text-sm font-medium text-brand-800 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-50 hover:shadow-md active:translate-y-0 active:shadow-none"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-300 px-4 py-3.5 text-sm font-medium text-brand-950 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-400 hover:shadow-md active:translate-y-0 active:shadow-none"
         >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M7 8V6a3 3 0 0 1 6 0v2" />
+            <rect x="4" y="8" width="12" height="11" rx="2" />
+            <path d="M18 12v5M15.5 14.5h5" />
+          </svg>
           Add to cart
         </button>
 
@@ -104,7 +119,7 @@ export default function AddToCart({ product }: { product: Product }) {
           type="button"
           onClick={handleBuyNow}
           disabled={buying}
-          className="w-full rounded-md bg-brand-700 px-4 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg active:translate-y-0 active:shadow-none disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          className="w-full rounded-full bg-brand-700 px-4 py-3.5 text-sm font-medium text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg active:translate-y-0 active:shadow-none disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
           {buying ? "…" : "Buy now"}
         </button>
