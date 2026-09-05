@@ -105,6 +105,17 @@ export default function ReelFeed() {
     };
   }, [activeIndex]);
 
+  // Kick off playback for the active slide as soon as its <video> mounts.
+  // The effect above runs once on first render while items are still loading
+  // (so there's no element yet), and `setActiveIndex(0)` from the observer
+  // is a no-op — so without this the very first reel never starts on its
+  // own. Runs again on every page append, but only ever plays something
+  // already paused, so it never restarts a reel you're watching.
+  useEffect(() => {
+    const v = videoRefs.current.get(activeIndex);
+    if (v && v.paused) v.play().catch(() => {});
+  }, [items, activeIndex]);
+
   function flashIcon(icon: "play" | "pause") {
     setTapIcon(icon);
     if (tapIconTimer.current) clearTimeout(tapIconTimer.current);
