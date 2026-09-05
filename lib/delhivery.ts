@@ -109,6 +109,16 @@ export async function createClientWarehouse(input: {
 // Shipment creation — the core call, one per order.
 // ---------------------------------------------------------------------------
 
+// Standard packing: a plastic flyer/poly mailer, 20 x 20 x 7.5 cm, ~500 gm.
+// Overridable per-shipment for the odd bulkier order.
+const DEFAULT_PACKAGE = {
+  lengthCm: 20,
+  widthCm: 20,
+  heightCm: 7.5,
+  weightGrams: 500,
+  plasticPackaging: true,
+};
+
 export type CreateShipmentInput = {
   orderId: string; // your own order id — must be unique per shipment
   name: string;
@@ -123,6 +133,10 @@ export type CreateShipmentInput = {
   productsDescription: string;
   quantity?: number;
   weightGrams?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
+  plasticPackaging?: boolean;
   shippingMode?: "Surface" | "Express";
 };
 
@@ -156,7 +170,11 @@ export async function createShipment(
         total_amount: String(input.totalAmount),
         products_desc: input.productsDescription,
         quantity: String(input.quantity ?? 1),
-        weight: String(input.weightGrams ?? 500),
+        weight: String(input.weightGrams ?? DEFAULT_PACKAGE.weightGrams),
+        shipment_length: String(input.lengthCm ?? DEFAULT_PACKAGE.lengthCm),
+        shipment_width: String(input.widthCm ?? DEFAULT_PACKAGE.widthCm),
+        shipment_height: String(input.heightCm ?? DEFAULT_PACKAGE.heightCm),
+        plastic_packaging: input.plasticPackaging ?? DEFAULT_PACKAGE.plasticPackaging,
         shipping_mode: input.shippingMode || "Surface",
       },
     ],
