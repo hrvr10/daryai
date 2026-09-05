@@ -22,10 +22,10 @@ real features each switch on when you add their keys to `.env.local`
 | Instagram-style infinite grid, 3 / 4 / 6 column toggle | [components/Feed.tsx](components/Feed.tsx) | nothing |
 | Product page with reel video, size picker, add to cart | [app/product/[id]](app/product/%5Bid%5D/page.tsx) | nothing |
 | Cart (saved in the browser) | [app/cart](app/cart/page.tsx) | nothing |
-| **Admin panel** — set price + size variants per reel, show/hide | [app/admin](app/admin/page.tsx) | `ADMIN_PASSWORD` |
-| **Connect Instagram** + **auto-fetch reels** (+ daily cron) | [app/admin/settings](app/admin/settings/page.tsx) | Instagram + Firebase |
+| **Admin panel** — set price + size variants per reel, show/hide | [app/adminin](app/adminin/page.tsx) | `ADMIN_PASSWORD` |
+| **Connect Instagram** + **auto-fetch reels** (+ daily cron) | [app/adminin/settings](app/adminin/settings/page.tsx) | Instagram + Firebase |
 | **Razorpay checkout** — Express (pay online) or Cash on Delivery (₹250 online + rest in cash) | [app/checkout](app/checkout/page.tsx) | Razorpay + Firebase |
-| **Orders list** + **Delhivery shipment/tracking** | [app/admin/orders](app/admin/orders/page.tsx) | Firebase (Delhivery optional) |
+| **Orders list** + **Delhivery shipment/tracking** | [app/adminin/orders](app/adminin/orders/page.tsx) | Firebase (Delhivery optional) |
 
 Data lives in **Firestore** (`products`, `settings`, `orders`). Without Firebase
 the site falls back to read-only seed data.
@@ -43,7 +43,7 @@ ADMIN_PASSWORD=your-password
 ADMIN_SESSION_SECRET=any-long-random-string
 ```
 
-Go to `/admin` and log in. (A throwaway password `letmein` is set for you now —
+Go to `/adminin` and log in. (A throwaway password `letmein` is set for you now —
 change it.)
 
 ### 2. Firebase (Firestore)
@@ -82,8 +82,8 @@ INSTAGRAM_REDIRECT_URI=https://YOUR-DOMAIN/api/instagram/callback
 NEXT_PUBLIC_SITE_URL=https://YOUR-DOMAIN
 ```
 
-5. Restart, open `/admin/settings`, click **Connect Instagram**, then
-   **Sync reels now**. Reels arrive **hidden**; open `/admin`, set a price and
+5. Restart, open `/adminin/settings`, click **Connect Instagram**, then
+   **Sync reels now**. Reels arrive **hidden**; open `/adminin`, set a price and
    sizes, tick **Live**.
 
 > Instagram media URLs expire after ~2 days, so this also syncs on its own
@@ -136,7 +136,7 @@ DELHIVERY_ENV=staging          # "production" once Delhivery has approved you
 DELHIVERY_PICKUP_LOCATION=your-registered-warehouse-name
 ```
 
-4. Restart. Go to `/admin/orders` — each paid/COD-confirmed order gets a
+4. Restart. Go to `/adminin/orders` — each paid/COD-confirmed order gets a
    **Create Delhivery shipment** button, which manifests it and stores the
    waybill number, plus a **Refresh tracking** button once one exists.
    Checkout also gets a soft, non-blocking heads-up if a PIN code isn't
@@ -144,15 +144,16 @@ DELHIVERY_PICKUP_LOCATION=your-registered-warehouse-name
 
 The client (`lib/delhivery.ts`) covers pincode serviceability, warehouse
 registration, shipment creation, tracking, and shipping labels — the core B2C
-lifecycle. It hasn't been exercised against a real Delhivery account (no
-token was available while building it), so **test it against Delhivery's
-staging environment first** (`DELHIVERY_ENV=staging`, the default) and check
-a real response before trusting it in production — the shipment-creation
-response shape in particular is a best-effort parse (Delhivery's docs don't
-publish a sample response), with the raw response always stored on the order
-if the waybill isn't found where expected. Pickup requests, shipping labels,
-cancellations, and NDR/RVP flows aren't wired up yet; Delhivery's own
-dashboard ("One Panel") can be used for those meanwhile.
+lifecycle. Shipment creation has been confirmed working against a real
+account (waybill issued, status "Manifested"). One thing to know: Delhivery
+deducts a manifest charge from your account's **prepaid wallet balance** at
+creation time — an empty wallet fails with "insufficient balance" (a clear
+error message surfaced on the order, not a code bug) — so keep it topped up
+at [one.delhivery.com](https://one.delhivery.com). If a shipment ever fails
+for another reason, the exact reason from Delhivery is shown inline in
+`/adminin/orders` and stored on the order's `delhivery.error` field. Pickup
+requests, shipping labels, cancellations, and NDR/RVP flows aren't wired up
+yet; Delhivery's own dashboard ("One Panel") can be used for those meanwhile.
 
 ---
 

@@ -28,10 +28,19 @@ export function getDb(): Firestore | null {
         }),
       });
     firestore = getFirestore(app);
-    // Several optional fields across the app (codFee, delhivery.*, etc.) are
-    // conditionally set to `undefined` rather than omitted — without this,
-    // Firestore throws on any write containing one instead of just skipping it.
-    firestore.settings({ ignoreUndefinedProperties: true });
+    try {
+      // Several optional fields across the app (codFee, delhivery.*, etc.)
+      // are conditionally set to `undefined` rather than omitted — without
+      // this, Firestore throws on any write containing one instead of just
+      // skipping it. Wrapped in try/catch because the underlying Firestore
+      // client is a singleton keyed on `app` that can outlive this module's
+      // own `firestore` variable across dev-mode hot reloads — if settings()
+      // was already applied on it, calling it again throws, which is safe
+      // to ignore (it means the setting we want is already in effect).
+      firestore.settings({ ignoreUndefinedProperties: true });
+    } catch {
+      /* already configured on this Firestore instance — fine */
+    }
   }
   return firestore;
 }

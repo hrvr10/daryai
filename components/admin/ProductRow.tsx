@@ -1,51 +1,39 @@
 "use client";
 
-import { useState } from "react";
 import ProductImage from "@/components/ProductImage";
 import type { Product } from "@/lib/products";
 
-export default function ProductRow({ product }: { product: Product }) {
-  const [price, setPrice] = useState(String(product.price || ""));
-  const [sizes, setSizes] = useState(
-    product.sizes.map((s) => s.label).join(", "),
-  );
-  const [active, setActive] = useState(product.active);
-  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
-    "idle",
-  );
-  const [msg, setMsg] = useState<string | null>(null);
+export type SaveState = "idle" | "saving" | "saved" | "error";
 
-  async function save() {
-    setState("saving");
-    setMsg(null);
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          price: Number(price) || 0,
-          sizes: sizes
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-            .map((label) => ({ label, stock: 10 })),
-          active,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
-      setState("saved");
-      setTimeout(() => setState("idle"), 1500);
-    } catch (err: any) {
-      setState("error");
-      setMsg(err.message || "Save failed");
-    }
-  }
-
+export default function ProductRow({
+  product,
+  price,
+  sizes,
+  active,
+  dirty,
+  saveState,
+  errorMsg,
+  onPriceChange,
+  onSizesChange,
+  onActiveChange,
+  onSave,
+}: {
+  product: Product;
+  price: string;
+  sizes: string;
+  active: boolean;
+  dirty: boolean;
+  saveState: SaveState;
+  errorMsg?: string;
+  onPriceChange: (v: string) => void;
+  onSizesChange: (v: string) => void;
+  onActiveChange: (v: boolean) => void;
+  onSave: () => void;
+}) {
   return (
-    <div className="flex flex-col gap-3 border-b border-neutral-200 py-4 sm:flex-row sm:items-center">
-      <div className="flex items-center gap-3 sm:w-64">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded bg-neutral-100">
+    <div className="grid grid-cols-1 items-center gap-3 rounded-lg border border-neutral-200 p-4 transition-colors hover:border-neutral-300 sm:grid-cols-[minmax(0,1.6fr)_repeat(2,minmax(0,1fr))_auto_auto]">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
           <ProductImage
             src={product.image}
             alt={product.name}
@@ -73,50 +61,77 @@ export default function ProductRow({ product }: { product: Product }) {
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <span className="text-neutral-500">₹</span>
+      <div>
+        <label className="mb-1 block text-xs text-neutral-400 sm:hidden">
+          Price
+        </label>
+        <div className="flex items-center rounded-md border border-neutral-300 focus-within:border-black">
+          <span className="pl-2.5 text-sm text-neutral-400">₹</span>
+          <input
+            type="number"
+            min={0}
+            value={price}
+            onChange={(e) => onPriceChange(e.target.value)}
+            placeholder="Price"
+            className="w-full rounded-md bg-transparent py-1.5 pl-1 pr-2.5 text-sm outline-none"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-neutral-400 sm:hidden">
+          Sizes
+        </label>
         <input
-          type="number"
-          min={0}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="Price"
-          className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm outline-none focus:border-black"
+          type="text"
+          value={sizes}
+          onChange={(e) => onSizesChange(e.target.value)}
+          placeholder="S, M, L, XL"
+          className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-black"
         />
-      </label>
+      </div>
 
-      <input
-        type="text"
-        value={sizes}
-        onChange={(e) => setSizes(e.target.value)}
-        placeholder="S, M, L, XL"
-        className="flex-1 rounded-md border border-neutral-300 px-2 py-1.5 text-sm outline-none focus:border-black"
-      />
+      <div className="flex items-center gap-2">
+        <label className="relative inline-flex cursor-pointer items-center">
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={(e) => onActiveChange(e.target.checked)}
+            className="peer sr-only"
+          />
+          <div className="h-6 w-11 rounded-full bg-neutral-300 transition-colors peer-checked:bg-black" />
+          <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
+        </label>
+        <span
+          className={`text-xs font-medium ${active ? "text-black" : "text-neutral-400"}`}
+        >
+          {active ? "Live" : "Hidden"}
+        </span>
+      </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={active}
-          onChange={(e) => setActive(e.target.checked)}
-        />
-        Live
-      </label>
+      <div className="flex items-center justify-end gap-2">
+        {dirty && saveState !== "saving" && (
+          <span
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"
+            title="Unsaved changes"
+          />
+        )}
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saveState === "saving"}
+          className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {saveState === "saving"
+            ? "Saving…"
+            : saveState === "saved"
+              ? "Saved ✓"
+              : "Save"}
+        </button>
+      </div>
 
-      <button
-        type="button"
-        onClick={save}
-        disabled={state === "saving"}
-        className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {state === "saving"
-          ? "Saving…"
-          : state === "saved"
-            ? "Saved ✓"
-            : "Save"}
-      </button>
-
-      {state === "error" && (
-        <span className="text-xs text-red-600">{msg}</span>
+      {saveState === "error" && errorMsg && (
+        <p className="text-xs text-red-600 sm:col-span-full">{errorMsg}</p>
       )}
     </div>
   );

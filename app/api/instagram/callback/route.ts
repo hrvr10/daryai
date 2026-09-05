@@ -4,7 +4,7 @@ import { setInstagramSettings } from "@/lib/db";
 import { siteUrl } from "@/lib/config";
 
 function back(params: Record<string, string>) {
-  const url = new URL("/admin/settings", siteUrl);
+  const url = new URL("/adminin/settings", siteUrl);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   return NextResponse.redirect(url);
 }

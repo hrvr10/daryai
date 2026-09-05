@@ -14,7 +14,7 @@ const API_ALLOWLIST = ["/api/admin/login", "/api/admin/logout"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isAdminPage =
-    pathname.startsWith("/admin") && pathname !== "/admin/login";
+    pathname.startsWith("/adminin") && pathname !== "/adminin/login";
   const isProtectedApi =
     !API_ALLOWLIST.includes(pathname) &&
     PROTECTED_API.some((p) => pathname.startsWith(p));
@@ -28,11 +28,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const url = req.nextUrl.clone();
-  url.pathname = "/admin/login";
+  url.pathname = "/adminin/login";
   url.searchParams.set("next", pathname);
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/instagram/:path*"],
+  matcher: ["/adminin/:path*", "/api/admin/:path*", "/api/instagram/:path*"],
 };

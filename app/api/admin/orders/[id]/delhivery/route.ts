@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { getOrder, updateOrder } from "@/lib/db";
 import { createShipment, trackShipment } from "@/lib/delhivery";
 import { isDelhiveryConfigured } from "@/lib/config";
@@ -70,6 +71,10 @@ export async function POST(
         ...order.delhivery,
         waybill: result.waybill,
         createdAt: Date.now(),
+        // Clear out any earlier failed-attempt error now that this
+        // succeeded — a plain `undefined` here would be silently dropped
+        // by ignoreUndefinedProperties instead of deleting the old value.
+        error: FieldValue.delete() as unknown as undefined,
       },
     });
 

@@ -142,7 +142,7 @@ export default function OrderRow({
           {msg && <span className="text-xs text-neutral-500">{msg}</span>}
         </div>
       )}
-      {order.delhivery?.error && (
+      {order.delhivery?.error && !order.delhivery?.waybill && (
         <p className="text-xs text-red-600">
           Last shipment error: {order.delhivery.error}
         </p>

@@ -12,7 +12,7 @@ export default function AdminBar({
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
-    router.replace("/admin/login");
+    router.replace("/adminin/login");
     router.refresh();
   }
 
@@ -20,7 +20,7 @@ export default function AdminBar({
     <div className="mb-6 flex items-center justify-between border-b border-neutral-200 pb-3">
       <nav className="flex gap-4 text-sm">
         <Link
-          href="/admin"
+          href="/adminin"
           className={
             active === "products" ? "font-semibold" : "text-neutral-500"
           }
@@ -28,7 +28,7 @@ export default function AdminBar({
           Products
         </Link>
         <Link
-          href="/admin/orders"
+          href="/adminin/orders"
           className={
             active === "orders" ? "font-semibold" : "text-neutral-500"
           }
@@ -36,7 +36,7 @@ export default function AdminBar({
           Orders
         </Link>
         <Link
-          href="/admin/settings"
+          href="/adminin/settings"
           className={
             active === "settings" ? "font-semibold" : "text-neutral-500"
           }
