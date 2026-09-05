@@ -36,7 +36,7 @@ export default function Header() {
           </svg>
           Cart
           {count > 0 && (
-            <span className="ml-0.5 inline-flex min-w-[1.25rem] justify-center rounded-full bg-black px-1 text-xs font-medium text-white">
+            <span className="ml-0.5 inline-flex min-w-[1.25rem] justify-center rounded-full bg-brand-700 px-1 text-xs font-medium text-white">
               {count}
             </span>
           )}

@@ -13,8 +13,6 @@ export type Draft = {
   compareAtPrice: string;
   sizes: string;
   colors: string;
-  images: string[];
-  image: string;
   active: boolean;
 };
 
@@ -36,18 +34,6 @@ export default function ProductRow({
   onSave: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [imageUrlInput, setImageUrlInput] = useState("");
-
-  function addImage() {
-    const url = imageUrlInput.trim();
-    if (!url) return;
-    onChange({ images: [...draft.images, url] });
-    setImageUrlInput("");
-  }
-
-  function removeImage(i: number) {
-    onChange({ images: draft.images.filter((_, idx) => idx !== i) });
-  }
 
   return (
     <div className="rounded-lg border border-neutral-200 transition-colors hover:border-neutral-300">
@@ -220,99 +206,6 @@ export default function ProductRow({
             </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Cover image (shown on the grid, reels feed &amp; as the video
-              poster)
-            </label>
-            <div className="flex items-center gap-3">
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100">
-                <ProductImage
-                  src={draft.image}
-                  alt=""
-                  className="h-full w-full"
-                />
-              </div>
-              <input
-                type="text"
-                value={draft.image}
-                onChange={(e) => onChange({ image: e.target.value })}
-                placeholder="Paste an image URL"
-                className="flex-1 rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-black"
-              />
-            </div>
-            {draft.images.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {draft.images.map((url, i) => (
-                  <button
-                    key={`${url}-${i}`}
-                    type="button"
-                    onClick={() => onChange({ image: url })}
-                    title="Use as cover image"
-                    className={`h-12 w-12 overflow-hidden rounded-md border-2 ${
-                      draft.image === url
-                        ? "border-black"
-                        : "border-transparent opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <ProductImage src={url} alt="" className="h-full w-full" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Extra photos (model shots, shown on the product page)
-            </label>
-            {draft.images.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {draft.images.map((url, i) => (
-                  <div
-                    key={`${url}-${i}`}
-                    className="group relative h-16 w-16 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100"
-                  >
-                    <ProductImage src={url} alt="" className="h-full w-full" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      aria-label="Remove image"
-                      className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-xs text-white"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={imageUrlInput}
-                onChange={(e) => setImageUrlInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addImage();
-                  }
-                }}
-                placeholder="Paste an image URL"
-                className="flex-1 rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-black"
-              />
-              <button
-                type="button"
-                onClick={addImage}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-400"
-              >
-                Add
-              </button>
-            </div>
-            <p className="mt-1 text-xs text-neutral-400">
-              Paste a link to an image hosted anywhere (Instagram post, Drive,
-              your own site, etc.) — there&apos;s no direct upload yet.
-            </p>
-          </div>
         </div>
       )}
     </div>

@@ -24,8 +24,8 @@ export default function ProductGallery({
               key={i}
               type="button"
               onClick={() => setActive(i)}
-              className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 bg-neutral-100 ${
-                i === active ? "border-black" : "border-transparent"
+              className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 bg-brand-50 ${
+                i === active ? "border-brand-700" : "border-transparent"
               }`}
               aria-label={`Show ${s.kind} ${i + 1}`}
             >
@@ -46,7 +46,7 @@ export default function ProductGallery({
         </div>
       )}
 
-      <div className="aspect-[9/16] flex-1 overflow-hidden rounded-md bg-neutral-100 sm:mx-auto sm:max-w-sm">
+      <div className="aspect-[9/16] flex-1 overflow-hidden rounded-2xl bg-gradient-to-b from-brand-100 to-brand-50 shadow-sm sm:mx-auto sm:max-w-sm">
         {current.kind === "video" ? (
           <video
             key={current.src}

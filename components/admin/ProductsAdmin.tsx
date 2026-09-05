@@ -12,8 +12,6 @@ function draftOf(p: Product): Draft {
     compareAtPrice: p.compareAtPrice ? String(p.compareAtPrice) : "",
     sizes: p.sizes.map((s) => s.label).join(", "),
     colors: (p.colors || []).join(", "),
-    images: p.images || [],
-    image: p.image,
     active: p.active,
   };
 }
@@ -33,8 +31,6 @@ function toPatch(draft: Draft) {
       .split(",")
       .map((c) => c.trim())
       .filter(Boolean),
-    images: draft.images,
-    image: draft.image,
     active: draft.active,
   };
 }

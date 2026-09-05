@@ -33,7 +33,6 @@ export default function DeliveryEstimate() {
 
   return (
     <div>
-      <div className="mb-1.5 text-sm font-medium">Estimated delivery</div>
       <form onSubmit={check} className="flex gap-2">
         <input
           type="text"
@@ -46,12 +45,12 @@ export default function DeliveryEstimate() {
             setStatus("idle");
           }}
           placeholder="Enter PIN code"
-          className="w-full max-w-[180px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+          className="w-full max-w-[180px] rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
         />
         <button
           type="submit"
           disabled={status === "checking" || pincode.length !== 6}
-          className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
         >
           {status === "checking" ? "…" : "Check"}
         </button>

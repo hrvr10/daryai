@@ -314,8 +314,8 @@ export default function CheckoutPage() {
               <label
                 className={`block cursor-pointer rounded-md border p-4 transition-colors ${
                   paymentMethod === "online"
-                    ? "border-neutral-800 bg-neutral-50"
-                    : "border-neutral-300 hover:border-neutral-400"
+                    ? "border-brand-700 bg-brand-50"
+                    : "border-neutral-300 hover:border-brand-400"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -325,7 +325,7 @@ export default function CheckoutPage() {
                     value="online"
                     checked={paymentMethod === "online"}
                     onChange={() => setPaymentMethod("online")}
-                    className="h-4 w-4 accent-black"
+                    className="h-4 w-4 accent-brand-700"
                   />
                   <span className="text-sm font-medium">
                     Express — pay online
@@ -340,8 +340,8 @@ export default function CheckoutPage() {
               <label
                 className={`block cursor-pointer rounded-md border p-4 transition-colors ${
                   paymentMethod === "cod"
-                    ? "border-neutral-800 bg-neutral-50"
-                    : "border-neutral-300 hover:border-neutral-400"
+                    ? "border-brand-700 bg-brand-50"
+                    : "border-neutral-300 hover:border-brand-400"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -351,7 +351,7 @@ export default function CheckoutPage() {
                     value="cod"
                     checked={paymentMethod === "cod"}
                     onChange={() => setPaymentMethod("cod")}
-                    className="h-4 w-4 accent-black"
+                    className="h-4 w-4 accent-brand-700"
                   />
                   <span className="text-sm font-medium">Cash on delivery</span>
                 </div>
@@ -376,7 +376,7 @@ export default function CheckoutPage() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-md bg-black px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+            className="w-full rounded-md bg-brand-700 px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {busy
               ? "Starting payment…"

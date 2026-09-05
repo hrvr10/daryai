@@ -56,10 +56,6 @@ export async function PATCH(
       .slice(0, 12);
   }
 
-  if (typeof body.image === "string" && body.image.trim()) {
-    patch.image = body.image.trim();
-  }
-
   if (typeof body.active === "boolean") patch.active = body.active;
   if (typeof body.name === "string") patch.name = body.name.slice(0, 140);
   if (typeof body.description === "string")

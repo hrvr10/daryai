@@ -108,7 +108,7 @@ export default async function SuccessPage({
 
         <Link
           href="/"
-          className="inline-block rounded-md bg-black px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+          className="inline-block rounded-md bg-brand-700 px-5 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg"
         >
           Keep shopping
         </Link>

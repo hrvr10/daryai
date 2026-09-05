@@ -131,10 +131,10 @@ export default function Feed({
               type="button"
               onClick={() => chooseCols(c)}
               aria-pressed={cols === c}
-              className={`h-7 w-7 rounded-md border text-xs ${
+              className={`h-7 w-7 rounded-md border text-xs transition-colors ${
                 cols === c
-                  ? "border-black bg-black text-white"
-                  : "border-neutral-300 text-neutral-600 hover:border-neutral-500"
+                  ? "border-brand-700 bg-brand-700 text-white"
+                  : "border-neutral-300 text-neutral-600 hover:border-brand-600"
               }`}
             >
               {c}

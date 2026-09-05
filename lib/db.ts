@@ -108,7 +108,6 @@ export type ProductPatch = Partial<
     | "sizes"
     | "colors"
     | "images"
-    | "image"
     | "active"
     | "name"
     | "description"

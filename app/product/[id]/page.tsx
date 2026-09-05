@@ -4,6 +4,7 @@ import ProductGallery from "@/components/ProductGallery";
 import AddToCart from "@/components/AddToCart";
 import SizeGuide from "@/components/SizeGuide";
 import DeliveryEstimate from "@/components/DeliveryEstimate";
+import { AccordionItem } from "@/components/Accordion";
 import { getProductById, listProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 
@@ -51,25 +52,30 @@ export default async function ProductPage({
     product.compareAtPrice != null && product.compareAtPrice > product.price;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-5 sm:px-0 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-5 sm:px-0 sm:py-10">
       <Link
         href="/"
-        className="mb-4 inline-block text-sm text-neutral-500 hover:text-black"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 transition-colors hover:text-brand-700"
       >
         ← Back to feed
       </Link>
 
-      <div className="grid gap-8 sm:grid-cols-2 sm:gap-10">
+      <div className="grid gap-8 sm:grid-cols-2 sm:gap-12">
         <ProductGallery slides={slides} alt={product.name} />
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.2em] text-brand-700">
+              {product.source === "instagram" ? "New arrival" : "daryai"}
+            </p>
+            <h1 className="text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
               {product.name}
             </h1>
             {product.price > 0 && (
-              <div className="mt-1 flex items-baseline gap-2 text-lg">
-                <span>{formatPrice(product.price, product.currency)}</span>
+              <div className="mt-3 flex items-baseline gap-2 text-xl">
+                <span className="font-medium">
+                  {formatPrice(product.price, product.currency)}
+                </span>
                 {hasDiscount && (
                   <span className="text-sm text-neutral-400 line-through">
                     {formatPrice(product.compareAtPrice!, product.currency)}
@@ -87,18 +93,28 @@ export default async function ProductPage({
 
           <AddToCart product={product} />
 
-          <div className="flex items-center gap-4 border-t border-neutral-200 pt-4">
-            <SizeGuide />
+          <div className="border-t border-neutral-200">
+            <AccordionItem title="Size guide">
+              <SizeGuide />
+            </AccordionItem>
+            <AccordionItem title="Shipping &amp; delivery">
+              <DeliveryEstimate />
+            </AccordionItem>
+            <AccordionItem title="Care instructions">
+              <p>
+                Machine wash cold with like colours. Do not bleach. Tumble
+                dry low, or lay flat to dry for a longer life. Iron on low
+                heat if needed, avoiding any prints or embellishments.
+              </p>
+            </AccordionItem>
           </div>
-
-          <DeliveryEstimate />
 
           {product.permalink && (
             <a
               href={product.permalink}
               target="_blank"
               rel="noreferrer"
-              className="inline-block text-xs text-neutral-400 underline"
+              className="inline-block text-xs text-neutral-400 underline transition-colors hover:text-brand-700"
             >
               View original reel on Instagram
             </a>

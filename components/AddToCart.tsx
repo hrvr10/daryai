@@ -55,8 +55,8 @@ export default function AddToCart({ product }: { product: Product }) {
                 onClick={() => setColor(c)}
                 className={`rounded-md border px-3 py-2 text-sm transition-all duration-150 ${
                   color === c
-                    ? "border-black bg-black text-white"
-                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-neutral-500"
+                    ? "border-brand-700 bg-brand-700 text-white"
+                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-brand-600"
                 }`}
               >
                 {c}
@@ -77,8 +77,8 @@ export default function AddToCart({ product }: { product: Product }) {
                 onClick={() => setSize(s)}
                 className={`min-w-[3rem] rounded-md border px-3 py-2 text-sm transition-all duration-150 ${
                   size === s
-                    ? "border-black bg-black text-white"
-                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-neutral-500"
+                    ? "border-brand-700 bg-brand-700 text-white"
+                    : "border-neutral-300 hover:-translate-y-0.5 hover:border-brand-600"
                 }`}
               >
                 {s}
@@ -95,7 +95,7 @@ export default function AddToCart({ product }: { product: Product }) {
             add(line);
             setAdded(true);
           }}
-          className="w-full rounded-md border border-black bg-white px-4 py-3 text-sm font-medium text-black transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-neutral-50 hover:shadow-md active:translate-y-0 active:shadow-none"
+          className="w-full rounded-md border border-brand-700 bg-white px-4 py-3 text-sm font-medium text-brand-800 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-50 hover:shadow-md active:translate-y-0 active:shadow-none"
         >
           Add to cart
         </button>
@@ -104,7 +104,7 @@ export default function AddToCart({ product }: { product: Product }) {
           type="button"
           onClick={handleBuyNow}
           disabled={buying}
-          className="w-full rounded-md bg-black px-4 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg active:translate-y-0 active:shadow-none disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          className="w-full rounded-md bg-brand-700 px-4 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg active:translate-y-0 active:shadow-none disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
           {buying ? "…" : "Buy now"}
         </button>

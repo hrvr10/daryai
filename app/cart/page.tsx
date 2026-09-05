@@ -100,7 +100,7 @@ export default function CartPage() {
 
           <Link
             href="/checkout"
-            className="block w-full rounded-md bg-black px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+            className="block w-full rounded-md bg-brand-700 px-4 py-3 text-center text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-lg"
           >
             Checkout
           </Link>
