@@ -56,18 +56,13 @@ export async function POST(
     });
 
     if (!result.success || !result.waybill) {
+      const reason = result.message || "Delhivery did not return a waybill.";
       await updateOrder(order.id, {
         // `delhivery` is a nested map — spread the existing one so this
         // doesn't wipe out fields a merge write can't reach individually.
-        delhivery: {
-          ...order.delhivery,
-          error: JSON.stringify(result.raw).slice(0, 1000),
-        },
+        delhivery: { ...order.delhivery, error: reason },
       });
-      return NextResponse.json(
-        { error: "Delhivery did not return a waybill.", raw: result.raw },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: reason, raw: result.raw }, { status: 502 });
     }
 
     await updateOrder(order.id, {

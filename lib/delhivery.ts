@@ -143,6 +143,8 @@ export type CreateShipmentInput = {
 export type CreateShipmentResult = {
   waybill: string | null;
   success: boolean;
+  /** Human-readable reason when Delhivery rejects the shipment. */
+  message?: string;
   raw: any;
 };
 
@@ -191,14 +193,18 @@ export async function createShipment(
   });
   const raw = await readJson(res);
 
-  // Response shape isn't documented with a sample on the developer portal;
-  // this covers the field names Delhivery is known to return, but confirm
-  // against a real response once a token is available and adjust if needed.
+  // Confirmed against a real response: { success, rmk, packages: [{ waybill,
+  // status: "Success"|"Fail", err_code, remarks: [...] }] }.
   const pkg = raw?.packages?.[0];
-  const waybill = pkg?.waybill ?? raw?.waybill ?? null;
-  const success = Boolean(raw?.success ?? pkg?.status === "Success" ?? waybill);
+  const waybill = pkg?.waybill || raw?.waybill || null;
+  const success = Boolean(raw?.success ?? pkg?.status === "Success") && Boolean(waybill);
+  const message = success
+    ? undefined
+    : [pkg?.err_code, ...(Array.isArray(pkg?.remarks) ? pkg.remarks : []), raw?.rmk]
+        .filter(Boolean)
+        .join(" — ") || undefined;
 
-  return { waybill, success, raw };
+  return { waybill, success, message, raw };
 }
 
 // ---------------------------------------------------------------------------
