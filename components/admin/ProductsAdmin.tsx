@@ -13,6 +13,7 @@ function draftOf(p: Product): Draft {
     sizes: p.sizes.map((s) => s.label).join(", "),
     colors: (p.colors || []).join(", "),
     images: p.images || [],
+    image: p.image,
     active: p.active,
   };
 }
@@ -33,6 +34,7 @@ function toPatch(draft: Draft) {
       .map((c) => c.trim())
       .filter(Boolean),
     images: draft.images,
+    image: draft.image,
     active: draft.active,
   };
 }

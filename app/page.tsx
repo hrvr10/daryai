@@ -19,7 +19,7 @@ export default async function HomePage() {
       <Link
         href="/reels"
         aria-label="Watch reels"
-        className="fixed bottom-5 right-4 z-30 flex items-center gap-2 rounded-full bg-black px-4 py-3 text-sm font-medium text-white shadow-lg sm:hidden"
+        className="fixed bottom-5 right-4 z-30 flex items-center gap-2 rounded-full border border-white/10 bg-black/90 px-4 py-3 text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-transform duration-200 ease-out hover:scale-105 active:scale-95 sm:hidden"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
           <rect

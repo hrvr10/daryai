@@ -147,7 +147,7 @@ export default function Feed({
         className={`grid grid-cols-3 ${colClass[cols]} gap-0.5 sm:gap-1.5 lg:gap-2`}
       >
         {items.map((product, i) => (
-          <FeedTile key={`${product.id}-${i}`} product={product} />
+          <FeedTile key={`${product.id}-${i}`} product={product} index={i} />
         ))}
       </div>
 

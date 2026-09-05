@@ -7,17 +7,17 @@ export default function Header() {
   const { count } = useCart();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-neutral-200/70 bg-white/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="text-base font-normal uppercase tracking-[0.25em] sm:text-lg"
+          className="text-base font-normal uppercase tracking-[0.25em] transition-opacity hover:opacity-60 sm:text-lg"
         >
           daryai
         </Link>
         <Link
           href="/cart"
-          className="group relative flex items-center gap-1.5 rounded-full border border-neutral-300 px-4 py-1.5 text-sm transition-colors hover:border-neutral-400 hover:bg-neutral-50"
+          className="group relative flex items-center gap-1.5 rounded-full border border-neutral-300 px-4 py-1.5 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-400 hover:bg-white hover:shadow-md"
         >
           <svg
             width="15"

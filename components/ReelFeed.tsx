@@ -155,7 +155,7 @@ export default function ReelFeed() {
       <Link
         href="/"
         aria-label="Close reels"
-        className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+        className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-transform duration-150 hover:scale-110 hover:bg-black/55 active:scale-95"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
@@ -174,7 +174,7 @@ export default function ReelFeed() {
           setMuted((m) => !m);
         }}
         aria-label={muted ? "Unmute" : "Mute"}
-        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-transform duration-150 hover:scale-110 hover:bg-black/55 active:scale-95"
       >
         {muted ? (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -291,7 +291,7 @@ export default function ReelFeed() {
                 <Link
                   href={`/product/${product.id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="pointer-events-auto inline-block rounded-full border border-white/50 bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md"
+                  className="pointer-events-auto inline-block rounded-full border border-white/50 bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-200 ease-out hover:scale-105 hover:bg-white/30 active:scale-95"
                 >
                   Shop now
                 </Link>

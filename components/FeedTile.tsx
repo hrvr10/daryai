@@ -5,7 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import ProductImage from "./ProductImage";
 import { formatPrice, type Product } from "@/lib/products";
 
-export default function FeedTile({ product }: { product: Product }) {
+export default function FeedTile({
+  product,
+  index = 0,
+}: {
+  product: Product;
+  index?: number;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLAnchorElement>(null);
   // preload="none" meant a hover had to start the download from scratch —
@@ -29,7 +35,8 @@ export default function FeedTile({ product }: { product: Product }) {
     <Link
       ref={containerRef}
       href={`/product/${product.id}`}
-      className="group relative block aspect-[9/16] overflow-hidden bg-neutral-100"
+      className="group relative block aspect-[9/16] animate-tile-in overflow-hidden bg-neutral-100 transition-shadow duration-300 hover:shadow-xl hover:shadow-black/10"
+      style={{ animationDelay: `${Math.min(index, 11) * 40}ms` }}
       onMouseEnter={() => videoRef.current?.play().catch(() => {})}
       onMouseLeave={() => {
         const v = videoRef.current;

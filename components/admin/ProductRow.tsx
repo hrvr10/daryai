@@ -14,6 +14,7 @@ export type Draft = {
   sizes: string;
   colors: string;
   images: string[];
+  image: string;
   active: boolean;
 };
 
@@ -217,6 +218,48 @@ export default function ProductRow({
                 className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-black"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-neutral-500">
+              Cover image (shown on the grid, reels feed &amp; as the video
+              poster)
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100">
+                <ProductImage
+                  src={draft.image}
+                  alt=""
+                  className="h-full w-full"
+                />
+              </div>
+              <input
+                type="text"
+                value={draft.image}
+                onChange={(e) => onChange({ image: e.target.value })}
+                placeholder="Paste an image URL"
+                className="flex-1 rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-black"
+              />
+            </div>
+            {draft.images.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {draft.images.map((url, i) => (
+                  <button
+                    key={`${url}-${i}`}
+                    type="button"
+                    onClick={() => onChange({ image: url })}
+                    title="Use as cover image"
+                    className={`h-12 w-12 overflow-hidden rounded-md border-2 ${
+                      draft.image === url
+                        ? "border-black"
+                        : "border-transparent opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <ProductImage src={url} alt="" className="h-full w-full" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
