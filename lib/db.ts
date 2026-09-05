@@ -214,23 +214,44 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  /**
+   * "created" = Razorpay order made, awaiting payment.
+   * "paid" = online (Express) order paid in full.
+   * "cod" = the ₹250 COD confirmation fee has been paid online;
+   *         `cashDueOnDelivery` is still owed in cash.
+   * "failed" = payment signature/verification failed.
+   */
   status: "created" | "paid" | "failed" | "cod";
   paymentMethod: "online" | "cod";
-  /** Cash-on-delivery surcharge included in `amount`, if any. */
+  /** COD confirmation fee, charged online via Razorpay (not cash). */
   codFee?: number;
+  /** Remaining product amount collected in cash at delivery (COD only). */
+  cashDueOnDelivery?: number;
   items: OrderItem[];
-  amount: number; // INR whole rupees, includes codFee
+  amount: number; // INR whole rupees — full order value (codFee + cashDueOnDelivery for COD)
   currency: string;
   customer: {
     name: string;
     email: string;
     phone: string;
+    /** Full display address (what shows on the confirmation page). */
     address: string;
+    /** Structured fields, needed for courier integrations like Delhivery. */
+    city?: string;
+    state?: string;
+    pincode?: string;
   };
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   createdAt: number;
   paidAt?: number;
+  delhivery?: {
+    waybill?: string;
+    status?: string; // last known tracking status/remark
+    labelUrl?: string;
+    createdAt?: number;
+    error?: string;
+  };
 };
 
 export async function createOrder(order: Omit<Order, "id">): Promise<string> {
@@ -252,6 +273,18 @@ export async function updateOrder(
 ): Promise<void> {
   const db = requireDb();
   await db.collection(ORDERS).doc(id).set(patch, { merge: true });
+}
+
+/** Most recent orders first, for the admin orders list. */
+export async function listOrders(limit = 50): Promise<Order[]> {
+  const db = getDb();
+  if (!db) return [];
+  const snap = await db
+    .collection(ORDERS)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as object) }) as Order);
 }
 
 export async function findOrderByRazorpayId(

@@ -36,6 +36,15 @@ export const adminConfig = {
     process.env.ADMIN_SESSION_SECRET || "insecure-dev-secret-change-me",
 };
 
+export const delhiveryConfig = {
+  apiToken: process.env.DELHIVERY_API_TOKEN || "",
+  // "production" hits track.delhivery.com (real pickups/AWBs); anything
+  // else (default) hits staging-express.delhivery.com for testing.
+  environment: process.env.DELHIVERY_ENV === "production" ? "production" : "staging",
+  // Exact, case-sensitive name of the registered pickup location/warehouse.
+  pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "",
+};
+
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.projectId &&
     firebaseConfig.clientEmail &&
@@ -51,3 +60,7 @@ export const isRazorpayConfigured = Boolean(
 );
 
 export const isAdminConfigured = Boolean(adminConfig.password);
+
+export const isDelhiveryConfigured = Boolean(
+  delhiveryConfig.apiToken && delhiveryConfig.pickupLocation,
+);

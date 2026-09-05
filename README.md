@@ -23,9 +23,9 @@ real features each switch on when you add their keys to `.env.local`
 | Product page with reel video, size picker, add to cart | [app/product/[id]](app/product/%5Bid%5D/page.tsx) | nothing |
 | Cart (saved in the browser) | [app/cart](app/cart/page.tsx) | nothing |
 | **Admin panel** — set price + size variants per reel, show/hide | [app/admin](app/admin/page.tsx) | `ADMIN_PASSWORD` |
-| **Connect Instagram** + **auto-fetch reels** | [app/admin/settings](app/admin/settings/page.tsx) | Instagram + Firebase |
-| **Razorpay checkout** | [app/checkout](app/checkout/page.tsx) | Razorpay + Firebase |
-| Orders stored | Firestore `orders` | Firebase |
+| **Connect Instagram** + **auto-fetch reels** (+ daily cron) | [app/admin/settings](app/admin/settings/page.tsx) | Instagram + Firebase |
+| **Razorpay checkout** — Express (pay online) or Cash on Delivery (₹250 online + rest in cash) | [app/checkout](app/checkout/page.tsx) | Razorpay + Firebase |
+| **Orders list** + **Delhivery shipment/tracking** | [app/admin/orders](app/admin/orders/page.tsx) | Firebase (Delhivery optional) |
 
 Data lives in **Firestore** (`products`, `settings`, `orders`). Without Firebase
 the site falls back to read-only seed data.
@@ -110,6 +110,49 @@ verifies the payment signature before marking the order paid
 ([app/api/checkout](app/api/checkout)). Optional: set a webhook to
 `/api/razorpay/webhook` (events `payment.captured`, `payment.failed`) with
 `RAZORPAY_WEBHOOK_SECRET`.
+
+At checkout, customers choose **Express** (pay the full amount online) or
+**Cash on delivery** (pay a ₹250 confirmation fee online now via Razorpay;
+the rest is collected in cash on delivery). Either way, Razorpay is always
+charged *something* — COD never skips payment entirely, which cuts down on
+fake/no-show COD orders. The ₹250 amount lives in `COD_FEE_INR` in
+[lib/products.ts](lib/products.ts).
+
+### 5. Delhivery (shipping)
+
+Optional. Reference:
+[one.delhivery.com/developer-portal/documents/b2c](https://one.delhivery.com/developer-portal/documents/b2c/).
+
+1. Get an API token from your Delhivery account (`one.delhivery.com`).
+2. Register a pickup location ("client warehouse") — either from Delhivery's
+   own dashboard, or by calling their **Client Warehouse Creation** API once
+   yourself with your business address (`lib/business.ts` has it). The name
+   you register is case-sensitive and must match exactly what you set below.
+3. In `.env.local` (or Vercel env vars):
+
+```
+DELHIVERY_API_TOKEN=xxx
+DELHIVERY_ENV=staging          # "production" once Delhivery has approved you
+DELHIVERY_PICKUP_LOCATION=your-registered-warehouse-name
+```
+
+4. Restart. Go to `/admin/orders` — each paid/COD-confirmed order gets a
+   **Create Delhivery shipment** button, which manifests it and stores the
+   waybill number, plus a **Refresh tracking** button once one exists.
+   Checkout also gets a soft, non-blocking heads-up if a PIN code isn't
+   serviceable (`app/api/checkout/pincode-check`).
+
+The client (`lib/delhivery.ts`) covers pincode serviceability, warehouse
+registration, shipment creation, tracking, and shipping labels — the core B2C
+lifecycle. It hasn't been exercised against a real Delhivery account (no
+token was available while building it), so **test it against Delhivery's
+staging environment first** (`DELHIVERY_ENV=staging`, the default) and check
+a real response before trusting it in production — the shipment-creation
+response shape in particular is a best-effort parse (Delhivery's docs don't
+publish a sample response), with the raw response always stored on the order
+if the waybill isn't found where expected. Pickup requests, shipping labels,
+cancellations, and NDR/RVP flows aren't wired up yet; Delhivery's own
+dashboard ("One Panel") can be used for those meanwhile.
 
 ---
 

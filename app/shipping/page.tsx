@@ -33,10 +33,11 @@ export default function ShippingPage() {
           away. No extra fee.
         </li>
         <li>
-          <strong>Cash on delivery</strong> — pay in cash when your order
-          arrives. A {formatPrice(COD_FEE_INR)} cash-on-delivery fee applies
-          and is added to your order total, shown clearly at checkout and on
-          your order confirmation before you place the order.
+          <strong>Cash on delivery</strong> — a {formatPrice(COD_FEE_INR)}{" "}
+          confirmation fee is charged online (via Razorpay) when you place
+          the order; the remaining product amount is paid in cash when it
+          arrives. Both amounts are shown clearly at checkout and on your
+          order confirmation.
         </li>
       </ul>
 

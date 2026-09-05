@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function AdminBar({ active }: { active: "products" | "settings" }) {
+export default function AdminBar({
+  active,
+}: {
+  active: "products" | "orders" | "settings";
+}) {
   const router = useRouter();
 
   async function logout() {
@@ -22,6 +26,14 @@ export default function AdminBar({ active }: { active: "products" | "settings" }
           }
         >
           Products
+        </Link>
+        <Link
+          href="/admin/orders"
+          className={
+            active === "orders" ? "font-semibold" : "text-neutral-500"
+          }
+        >
+          Orders
         </Link>
         <Link
           href="/admin/settings"

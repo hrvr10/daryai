@@ -13,6 +13,7 @@ export default async function SuccessPage({
     ? await getOrder(searchParams.order)
     : null;
   const isCod = order?.paymentMethod === "cod";
+  const cashDue = order?.cashDueOnDelivery || 0;
 
   return (
     <div className="px-4 py-8 sm:px-0">
@@ -41,9 +42,10 @@ export default async function SuccessPage({
 
         {isCod && (
           <div className="rounded-md bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
-            Pay <span className="font-semibold">{formatPrice(order!.amount)}</span>{" "}
-            in cash when your order arrives — this includes a{" "}
-            {formatPrice(order!.codFee || 0)} cash-on-delivery fee.
+            <span className="font-semibold">{formatPrice(order!.codFee || 0)}</span>{" "}
+            confirmation fee charged online. Pay the remaining{" "}
+            <span className="font-semibold">{formatPrice(cashDue)}</span> in
+            cash when your order arrives.
           </div>
         )}
 
@@ -65,17 +67,33 @@ export default async function SuccessPage({
               ))}
               {isCod && order.codFee ? (
                 <li className="flex justify-between gap-4">
-                  <span>Cash on delivery fee</span>
+                  <span>COD confirmation fee</span>
                   <span>{formatPrice(order.codFee)}</span>
                 </li>
               ) : null}
             </ul>
-            <div className="flex justify-between border-t border-neutral-200 pt-3 font-medium">
-              <span>Total</span>
-              <span>{formatPrice(order.amount)}</span>
-            </div>
+            {isCod ? (
+              <div className="space-y-1 border-t border-neutral-200 pt-3 font-medium">
+                <div className="flex justify-between">
+                  <span>Paid online</span>
+                  <span>{formatPrice(order.codFee || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Due on delivery (cash)</span>
+                  <span>{formatPrice(cashDue)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between border-t border-neutral-200 pt-3 font-medium">
+                <span>Total</span>
+                <span>{formatPrice(order.amount)}</span>
+              </div>
+            )}
             <div className="border-t border-neutral-200 pt-3 text-xs text-neutral-500">
-              Payment: {isCod ? "Cash on delivery" : "Paid online via Razorpay"}
+              Payment:{" "}
+              {isCod
+                ? `${formatPrice(order.codFee || 0)} paid online (Razorpay) · ${formatPrice(cashDue)} cash on delivery`
+                : "Paid online via Razorpay"}
             </div>
             {order.customer?.address && (
               <div className="border-t border-neutral-200 pt-3 text-xs text-neutral-500">

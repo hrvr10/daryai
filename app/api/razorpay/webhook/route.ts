@@ -24,9 +24,13 @@ export async function POST(req: Request) {
   const order = await findOrderByRazorpayId(razorpayOrderId);
   if (!order) return NextResponse.json({ ok: true });
 
-  if (event.event === "payment.captured" && order.status !== "paid") {
+  // COD: the payment.captured event here is only the ₹250 confirmation
+  // fee — the order lands in "cod" (cash still due), not "paid".
+  const paidStatus = order.paymentMethod === "cod" ? "cod" : "paid";
+
+  if (event.event === "payment.captured" && order.status !== paidStatus) {
     await updateOrder(order.id, {
-      status: "paid",
+      status: paidStatus,
       razorpayPaymentId: entity.id,
       paidAt: Date.now(),
     });

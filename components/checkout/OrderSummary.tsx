@@ -9,10 +9,10 @@ export default function OrderSummary({
 }: {
   lines: CartLine[];
   subtotal: number;
-  /** Cash-on-delivery surcharge, if that payment method is selected. */
+  /** COD confirmation fee (paid online now) — set only when COD is selected. */
   codFee?: number;
 }) {
-  const total = subtotal + codFee;
+  const isCod = codFee > 0;
 
   return (
     <div className="space-y-5">
@@ -47,18 +47,25 @@ export default function OrderSummary({
           <span>Shipping</span>
           <span>Free</span>
         </div>
-        {codFee > 0 && (
-          <div className="flex justify-between text-neutral-600">
-            <span>Cash on delivery fee</span>
-            <span>{formatPrice(codFee)}</span>
-          </div>
-        )}
       </div>
 
-      <div className="flex items-baseline justify-between border-t border-neutral-200 pt-4">
-        <span className="text-sm font-medium">Total</span>
-        <span className="text-lg font-semibold">{formatPrice(total)}</span>
-      </div>
+      {isCod ? (
+        <div className="space-y-2 border-t border-neutral-200 pt-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-medium">Pay online now</span>
+            <span className="text-lg font-semibold">{formatPrice(codFee)}</span>
+          </div>
+          <div className="flex items-baseline justify-between text-neutral-600">
+            <span className="text-sm">Due on delivery (cash)</span>
+            <span className="text-sm font-medium">{formatPrice(subtotal)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-baseline justify-between border-t border-neutral-200 pt-4">
+          <span className="text-sm font-medium">Total</span>
+          <span className="text-lg font-semibold">{formatPrice(subtotal)}</span>
+        </div>
+      )}
     </div>
   );
 }

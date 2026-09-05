@@ -42,6 +42,25 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
     "online",
   );
+  const [pincodeNote, setPincodeNote] = useState<string | null>(null);
+
+  // Soft, non-blocking heads-up if the courier can't reach this PIN code.
+  // No-ops entirely when Delhivery isn't configured.
+  async function checkPincode(pincode: string) {
+    setPincodeNote(null);
+    if (!/^\d{6}$/.test(pincode)) return;
+    try {
+      const res = await fetch(`/api/checkout/pincode-check?pincode=${pincode}`);
+      const data = await res.json();
+      if (data.checked && !data.serviceable) {
+        setPincodeNote(
+          "Heads up: our courier doesn't currently deliver to this PIN code.",
+        );
+      }
+    } catch {
+      /* best-effort only */
+    }
+  }
 
   // "Buy now" checks out a single item held in sessionStorage instead of the
   // shared cart — read it once on mount (needs `window`, so this can't run
@@ -62,6 +81,9 @@ export default function CheckoutPage() {
   const count = lines.length;
   const codFee = paymentMethod === "cod" ? COD_FEE_INR : 0;
   const total = subtotal + codFee;
+  // What Razorpay actually charges right now — the ₹250 fee for COD, or
+  // the full amount for the online/"Express" flow.
+  const payNow = codFee > 0 ? codFee : total;
 
   if (!ready) return null;
 
@@ -99,6 +121,9 @@ export default function CheckoutPage() {
       email: get("email"),
       phone: get("phone"),
       address,
+      city: get("city"),
+      state: get("state"),
+      pincode: get("pincode"),
     };
 
     try {
@@ -118,24 +143,19 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not start checkout");
 
-      // Cash on delivery — no online payment step, the order is confirmed.
-      if (data.paymentMethod === "cod") {
-        if (isBuyNow) clearBuyNow();
-        else cart.clear();
-        router.push(`/checkout/success?order=${data.orderId}`);
-        return;
-      }
-
       const ok = await loadRazorpay();
       if (!ok) throw new Error("Could not load Razorpay. Check your connection.");
 
+      const isCod = data.paymentMethod === "cod";
       const rzp = new (window as any).Razorpay({
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
         order_id: data.razorpayOrderId,
         name: "daryai",
-        description: `${count} item${count > 1 ? "s" : ""}`,
+        description: isCod
+          ? `COD confirmation fee — ${formatPrice(data.cashDueOnDelivery)} due on delivery`
+          : `${count} item${count > 1 ? "s" : ""}`,
         prefill: {
           name: customer.name,
           email: customer.email,
@@ -198,7 +218,7 @@ export default function CheckoutPage() {
               </svg>
               Show order summary
             </span>
-            <span className="font-medium">{formatPrice(total)}</span>
+            <span className="font-medium">{formatPrice(payNow)}</span>
           </summary>
           <div className="border-t border-neutral-200 p-4">
             <OrderSummary lines={lines} subtotal={subtotal} codFee={codFee} />
@@ -272,9 +292,15 @@ export default function CheckoutPage() {
                   pattern="[0-9]{6}"
                   maxLength={6}
                   autoComplete="postal-code"
+                  onBlur={(e) => checkPincode(e.target.value.trim())}
                   required
                 />
               </div>
+              {pincodeNote && (
+                <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  {pincodeNote}
+                </p>
+              )}
             </div>
           </section>
 
@@ -329,11 +355,12 @@ export default function CheckoutPage() {
                   <span className="text-sm font-medium">Cash on delivery</span>
                 </div>
                 <p className="ml-7 mt-1 text-xs text-neutral-500">
-                  Pay in cash when your order arrives. A{" "}
+                  Pay a{" "}
                   <span className="font-medium text-neutral-700">
-                    {formatPrice(COD_FEE_INR)} cash-on-delivery fee
+                    {formatPrice(COD_FEE_INR)} confirmation fee
                   </span>{" "}
-                  applies and is added to your total below.
+                  online now via Razorpay — the rest of your order is paid in
+                  cash when it arrives.
                 </p>
               </label>
             </div>
@@ -351,9 +378,9 @@ export default function CheckoutPage() {
             className="w-full rounded-md bg-black px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
           >
             {busy
-              ? "Placing order…"
+              ? "Starting payment…"
               : paymentMethod === "cod"
-                ? `Place order — pay ${formatPrice(total)} on delivery`
+                ? `Pay ${formatPrice(codFee)} now — ${formatPrice(subtotal)} on delivery`
                 : `Pay ${formatPrice(total)}`}
           </button>
 

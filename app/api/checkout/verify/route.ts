@@ -40,8 +40,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Signature check failed" }, { status: 400 });
   }
 
+  // COD: this payment was just the ₹250 confirmation fee, not the full
+  // order — the rest is still owed in cash at delivery.
+  const newStatus = order.paymentMethod === "cod" ? "cod" : "paid";
+
   await updateOrder(order.id, {
-    status: "paid",
+    status: newStatus,
     razorpayPaymentId: razorpay_payment_id,
     paidAt: Date.now(),
   });

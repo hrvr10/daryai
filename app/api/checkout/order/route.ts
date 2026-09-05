@@ -17,6 +17,12 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+  if (!isRazorpayConfigured) {
+    return NextResponse.json(
+      { error: "Razorpay is not configured on the server." },
+      { status: 503 },
+    );
+  }
 
   let body: any;
   try {
@@ -28,13 +34,6 @@ export async function POST(req: Request) {
   const paymentMethod: "online" | "cod" =
     body.paymentMethod === "cod" ? "cod" : "online";
 
-  if (paymentMethod === "online" && !isRazorpayConfigured) {
-    return NextResponse.json(
-      { error: "Razorpay is not configured on the server." },
-      { status: 503 },
-    );
-  }
-
   const rawItems: IncomingItem[] = Array.isArray(body.items) ? body.items : [];
   if (rawItems.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -45,6 +44,9 @@ export async function POST(req: Request) {
     email: String(body.customer?.email ?? "").trim(),
     phone: String(body.customer?.phone ?? "").trim(),
     address: String(body.customer?.address ?? "").trim(),
+    city: String(body.customer?.city ?? "").trim() || undefined,
+    state: String(body.customer?.state ?? "").trim() || undefined,
+    pincode: String(body.customer?.pincode ?? "").trim() || undefined,
   };
   if (!customer.name || !customer.email || !customer.address) {
     return NextResponse.json(
@@ -84,49 +86,29 @@ export async function POST(req: Request) {
 
   const itemsTotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
   const codFee = paymentMethod === "cod" ? COD_FEE_INR : 0;
-  const amount = itemsTotal + codFee;
+  // Cash on delivery: only the ₹250 confirmation fee is charged online now;
+  // the product amount is collected in cash when the order arrives. Online
+  // ("Express"): the full amount is charged online, nothing due later.
+  const payNowAmount = paymentMethod === "cod" ? codFee : itemsTotal;
+  const cashDueOnDelivery = paymentMethod === "cod" ? itemsTotal : 0;
 
-  // Cash on delivery — no online payment, confirm the order right away.
-  if (paymentMethod === "cod") {
-    try {
-      const orderId = await createOrder({
-        status: "cod",
-        paymentMethod: "cod",
-        codFee,
-        items,
-        amount,
-        currency: "INR",
-        customer,
-        createdAt: Date.now(),
-      });
-      return NextResponse.json({
-        orderId,
-        paymentMethod: "cod",
-        amount,
-        codFee,
-        customer,
-      });
-    } catch (err: any) {
-      return NextResponse.json(
-        { error: err.message || "Could not place order" },
-        { status: 500 },
-      );
-    }
-  }
-
-  // Online (prepaid / "Express") — create a Razorpay order to pay now.
   try {
     const rzp = await createRazorpayOrder({
-      amountInr: amount,
+      amountInr: payNowAmount,
       receipt: `daryai_${Date.now()}`,
-      notes: { email: customer.email },
+      notes: {
+        email: customer.email,
+        kind: paymentMethod === "cod" ? "cod_confirmation_fee" : "full_order",
+      },
     });
 
     const orderId = await createOrder({
       status: "created",
-      paymentMethod: "online",
+      paymentMethod,
+      codFee: paymentMethod === "cod" ? codFee : undefined,
+      cashDueOnDelivery: paymentMethod === "cod" ? cashDueOnDelivery : undefined,
       items,
-      amount,
+      amount: itemsTotal + codFee, // full order value across both charges
       currency: "INR",
       customer,
       razorpayOrderId: rzp.id,
@@ -135,11 +117,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       orderId,
-      paymentMethod: "online",
+      paymentMethod,
       razorpayOrderId: rzp.id,
-      amount: rzp.amount, // paise
+      amount: rzp.amount, // paise — what Razorpay charges right now
       currency: rzp.currency,
       keyId: razorpayConfig.publicKeyId,
+      codFee,
+      cashDueOnDelivery,
       customer,
     });
   } catch (err: any) {

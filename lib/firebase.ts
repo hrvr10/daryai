@@ -28,6 +28,10 @@ export function getDb(): Firestore | null {
         }),
       });
     firestore = getFirestore(app);
+    // Several optional fields across the app (codFee, delhivery.*, etc.) are
+    // conditionally set to `undefined` rather than omitted — without this,
+    // Firestore throws on any write containing one instead of just skipping it.
+    firestore.settings({ ignoreUndefinedProperties: true });
   }
   return firestore;
 }
