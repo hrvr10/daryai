@@ -119,10 +119,11 @@ export default function ReelFeed() {
     items.forEach((p, i) => {
       const distance = i - activeIndex;
       if (distance < -PRELOAD_BEHIND || distance > PRELOAD_AHEAD + 1) return;
-      if (!p.videoUrl) return;
+      const url = p.playbackUrl || p.videoUrl;
+      if (!url) return;
       let origin: string;
       try {
-        origin = new URL(p.videoUrl).origin;
+        origin = new URL(url).origin;
       } catch {
         return;
       }
@@ -238,7 +239,7 @@ export default function ReelFeed() {
                     if (el) videoRefs.current.set(i, el);
                     else videoRefs.current.delete(i);
                   }}
-                  src={product.videoUrl}
+                  src={product.playbackUrl || product.videoUrl}
                   muted={muted}
                   loop
                   playsInline

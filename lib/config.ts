@@ -45,6 +45,19 @@ export const delhiveryConfig = {
   pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "",
 };
 
+export const bunnyConfig = {
+  libraryId: process.env.BUNNY_STREAM_LIBRARY_ID || "",
+  apiKey: process.env.BUNNY_STREAM_API_KEY || "",
+  // The library's CDN hostname, e.g. "vz-xxxxxxxx.b-cdn.net" — protocol and
+  // trailing slash tolerated.
+  hostname: (process.env.BUNNY_STREAM_HOSTNAME || "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, ""),
+  // Which MP4-fallback resolution to serve. Must be enabled in the library's
+  // encoding settings (720p is on by default).
+  mp4Resolution: process.env.BUNNY_STREAM_MP4_RESOLUTION || "720p",
+};
+
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.projectId &&
     firebaseConfig.clientEmail &&
@@ -63,4 +76,8 @@ export const isAdminConfigured = Boolean(adminConfig.password);
 
 export const isDelhiveryConfigured = Boolean(
   delhiveryConfig.apiToken && delhiveryConfig.pickupLocation,
+);
+
+export const isBunnyConfigured = Boolean(
+  bunnyConfig.libraryId && bunnyConfig.apiKey && bunnyConfig.hostname,
 );

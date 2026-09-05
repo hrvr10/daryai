@@ -21,8 +21,17 @@ export type Product = {
   image: string;
   /** Extra photos (e.g. model shots) shown alongside the reel on the PDP. */
   images?: string[];
-  /** Reel video URL when the product came from an Instagram reel. */
+  /** Reel video URL when the product came from an Instagram reel. This is the
+   *  original Instagram CDN URL (used as the source for re-hosting, and as a
+   *  fallback until Bunny has finished). */
   videoUrl?: string;
+  /** Bunny Stream video GUID once this reel has been copied to our own CDN. */
+  bunnyVideoId?: string;
+  /** True once Bunny has finished transcoding. Until then we serve `videoUrl`. */
+  bunnyReady?: boolean;
+  /** Best available playback URL: the Bunny CDN MP4 when ready, else `videoUrl`.
+   *  Computed on read in lib/db — never stored in Firestore. */
+  playbackUrl?: string;
   permalink?: string;
   description: string;
   sizes: SizeVariant[];

@@ -40,7 +40,13 @@ export default async function ProductPage({
 
   const slides = [
     ...(product.videoUrl
-      ? [{ kind: "video" as const, src: product.videoUrl, poster: product.image }]
+      ? [
+          {
+            kind: "video" as const,
+            src: product.playbackUrl || product.videoUrl,
+            poster: product.image,
+          },
+        ]
       : product.image
         ? [{ kind: "image" as const, src: product.image }]
         : []),

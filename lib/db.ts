@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb, requireDb } from "./firebase";
 import { seedProducts, type Product, type SizeVariant } from "./products";
+import { bunnyMp4Url } from "./bunny";
 
 const PRODUCTS = "products";
 const SETTINGS = "settings";
@@ -16,6 +17,11 @@ export type ProductPage = {
 };
 
 function normalizeProduct(id: string, data: any): Product {
+  const videoUrl = data.videoUrl ?? undefined;
+  const bunnyVideoId = data.bunnyVideoId ?? undefined;
+  const bunnyReady = data.bunnyReady === true;
+  const bunnyUrl = bunnyVideoId && bunnyReady ? bunnyMp4Url(bunnyVideoId) : "";
+
   return {
     id,
     source: data.source ?? "manual",
@@ -26,7 +32,10 @@ function normalizeProduct(id: string, data: any): Product {
     currency: data.currency ?? "INR",
     image: data.image ?? "",
     images: Array.isArray(data.images) ? (data.images as string[]) : undefined,
-    videoUrl: data.videoUrl ?? undefined,
+    videoUrl,
+    bunnyVideoId,
+    bunnyReady,
+    playbackUrl: bunnyUrl || videoUrl,
     permalink: data.permalink ?? undefined,
     description: data.description ?? "",
     sizes: Array.isArray(data.sizes) ? (data.sizes as SizeVariant[]) : [],
@@ -100,6 +109,18 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     .map((d) => normalizeProduct(d.id, d.data()!));
 }
 
+/** Every product that came from an Instagram reel (active or not) — used by
+ *  the sync's Bunny re-hosting pass. */
+export async function listInstagramProducts(): Promise<Product[]> {
+  const db = getDb();
+  if (!db) return [];
+  const snap = await db
+    .collection(PRODUCTS)
+    .where("source", "==", "instagram")
+    .get();
+  return snap.docs.map((d) => normalizeProduct(d.id, d.data()));
+}
+
 export type ProductPatch = Partial<
   Pick<
     Product,
@@ -112,6 +133,8 @@ export type ProductPatch = Partial<
     | "name"
     | "description"
     | "order"
+    | "bunnyVideoId"
+    | "bunnyReady"
   >
 >;
 

@@ -1,10 +1,14 @@
 import "server-only";
 import {
   getInstagramSettings,
+  listInstagramProducts,
   setInstagramSettings,
+  updateProduct,
   upsertProductFromReel,
 } from "./db";
 import { fetchReels, refreshLongLivedToken } from "./instagram";
+import { isBunnyConfigured } from "./config";
+import { getVideoStatus, ingestVideo } from "./bunny";
 
 export type SyncResult = { total: number; created: number; updated: number };
 
@@ -47,10 +51,46 @@ export async function syncInstagramReels(): Promise<SyncResult> {
     else updated++;
   }
 
+  await reconcileBunnyVideos();
+
   await setInstagramSettings({
     lastSyncAt: Date.now(),
     lastSyncCount: reels.length,
   });
 
   return { total: reels.length, created, updated };
+}
+
+/**
+ * Copy reel videos onto our own CDN (Bunny Stream) so mobile playback is
+ * fast and the Instagram URLs (which expire) stop being the live source.
+ * Each sync: kick off ingestion for any reel not yet sent to Bunny, and
+ * mark as ready any that Bunny has finished transcoding. Best-effort — a
+ * Bunny failure must never break the Instagram sync.
+ */
+async function reconcileBunnyVideos(): Promise<void> {
+  if (!isBunnyConfigured) return;
+  let products;
+  try {
+    products = await listInstagramProducts();
+  } catch (err) {
+    console.error("Bunny reconcile: failed to list products", err);
+    return;
+  }
+
+  for (const p of products) {
+    try {
+      if (p.videoUrl && !p.bunnyVideoId) {
+        const guid = await ingestVideo(p.videoUrl, p.name);
+        await updateProduct(p.id, { bunnyVideoId: guid });
+      } else if (p.bunnyVideoId && !p.bunnyReady) {
+        const status = await getVideoStatus(p.bunnyVideoId);
+        if (status === "ready") {
+          await updateProduct(p.id, { bunnyReady: true });
+        }
+      }
+    } catch (err) {
+      console.error(`Bunny reconcile failed for ${p.id}`, err);
+    }
+  }
 }

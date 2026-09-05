@@ -63,7 +63,7 @@ export default function FeedTile({
       {product.videoUrl && (
         <video
           ref={videoRef}
-          src={product.videoUrl}
+          src={product.playbackUrl || product.videoUrl}
           muted
           loop
           playsInline
