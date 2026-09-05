@@ -4,11 +4,19 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatPrice, type Product } from "@/lib/products";
 
+// How many slides around the active one keep a real, buffering <video>
+// mounted. Everything outside this window only shows the poster image —
+// keeps memory/bandwidth bounded while making the next swipe feel instant
+// because that video has already been downloading in the background.
+const PRELOAD_BEHIND = 1;
+const PRELOAD_AHEAD = 1;
+
 export default function ReelFeed() {
   const [items, setItems] = useState<Product[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [tapIcon, setTapIcon] = useState<"play" | "pause" | null>(null);
+  const [buffering, setBuffering] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
@@ -68,16 +76,30 @@ export default function ReelFeed() {
     return () => io.disconnect();
   }, [items.length]);
 
-  // Play the active video, pause and rewind the rest.
+  // Play the active video, pause the rest. Also surface a brief "buffering"
+  // state so a slow network shows a spinner instead of looking frozen —
+  // with the preload window below this should be rare in practice.
   useEffect(() => {
+    setBuffering(false);
+
     videoRefs.current.forEach((video, idx) => {
-      if (idx === activeIndex) {
-        video.currentTime = 0;
-        video.play().catch(() => {});
-      } else {
-        video.pause();
-      }
+      if (idx !== activeIndex) video.pause();
     });
+
+    const active = videoRefs.current.get(activeIndex);
+    if (!active) return;
+
+    active.currentTime = 0;
+    const onWaiting = () => setBuffering(true);
+    const onPlaying = () => setBuffering(false);
+    active.addEventListener("waiting", onWaiting);
+    active.addEventListener("playing", onPlaying);
+    active.play().catch(() => {});
+
+    return () => {
+      active.removeEventListener("waiting", onWaiting);
+      active.removeEventListener("playing", onPlaying);
+    };
   }, [activeIndex]);
 
   function flashIcon(icon: "play" | "pause") {
@@ -154,70 +176,89 @@ export default function ReelFeed() {
         ref={containerRef}
         className="h-full w-full snap-y snap-mandatory overflow-y-scroll scroll-smooth"
       >
-        {items.map((product, i) => (
-          <div
-            key={`${product.id}-${i}`}
-            data-index={i}
-            onClick={() => togglePlay(i)}
-            className="relative flex h-full w-full snap-start items-center justify-center bg-neutral-950"
-          >
-            {product.videoUrl ? (
-              <video
-                ref={(el) => {
-                  if (el) videoRefs.current.set(i, el);
-                  else videoRefs.current.delete(i);
-                }}
-                src={product.videoUrl}
-                poster={product.image || undefined}
-                muted={muted}
-                loop
-                playsInline
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            )}
+        {items.map((product, i) => {
+          const distance = i - activeIndex;
+          const isActive = distance === 0;
+          const isNear =
+            distance >= -PRELOAD_BEHIND && distance <= PRELOAD_AHEAD;
 
-            {tapIcon && i === activeIndex && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="rounded-full bg-black/40 p-5 text-white">
-                  {tapIcon === "play" ? (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8 5v14l11-7Z" />
-                    </svg>
-                  ) : (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
-                    </svg>
+          return (
+            <div
+              key={`${product.id}-${i}`}
+              data-index={i}
+              onClick={() => togglePlay(i)}
+              className="relative flex h-full w-full snap-start items-center justify-center bg-neutral-950"
+            >
+              {product.videoUrl && isNear ? (
+                <video
+                  ref={(el) => {
+                    if (el) videoRefs.current.set(i, el);
+                    else videoRefs.current.delete(i);
+                  }}
+                  src={product.videoUrl}
+                  poster={product.image || undefined}
+                  muted={muted}
+                  loop
+                  playsInline
+                  // The active slide and the one right after it buffer
+                  // ahead of time; anything a swipe further back only
+                  // needs its metadata (it's already been watched).
+                  preload={distance >= 0 ? "auto" : "metadata"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                // Out of the preload window (or no video) — just the
+                // poster. Costs nothing until this slide gets close.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              )}
+
+              {isActive && buffering && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                </div>
+              )}
+
+              {tapIcon && isActive && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="rounded-full bg-black/40 p-5 text-white">
+                    {tapIcon === "play" ? (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7Z" />
+                      </svg>
+                    ) : (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-20 pt-16 sm:pb-10">
+                <div className="mb-3 text-sm text-white">
+                  <div className="font-medium">{product.name}</div>
+                  {product.price > 0 && (
+                    <div className="text-white/80">
+                      {formatPrice(product.price, product.currency)}
+                    </div>
                   )}
                 </div>
+                <Link
+                  href={`/product/${product.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="pointer-events-auto inline-block rounded-full border border-white/50 bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md"
+                >
+                  Shop now
+                </Link>
               </div>
-            )}
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-20 pt-16 sm:pb-10">
-              <div className="mb-3 text-sm text-white">
-                <div className="font-medium">{product.name}</div>
-                {product.price > 0 && (
-                  <div className="text-white/80">
-                    {formatPrice(product.price, product.currency)}
-                  </div>
-                )}
-              </div>
-              <Link
-                href={`/product/${product.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="pointer-events-auto inline-block rounded-full border border-white/50 bg-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md"
-              >
-                Shop now
-              </Link>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {items.length === 0 && (
           <div className="flex h-full w-full items-center justify-center text-sm text-white/60">
