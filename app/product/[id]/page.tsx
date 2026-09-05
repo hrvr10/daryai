@@ -4,7 +4,7 @@ import ProductGallery from "@/components/ProductGallery";
 import AddToCart from "@/components/AddToCart";
 import SizeGuide from "@/components/SizeGuide";
 import DeliveryEstimate from "@/components/DeliveryEstimate";
-import { getProductById } from "@/lib/db";
+import { getProductById, listProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 
 // Was force-dynamic, which also blocks Next's Link prefetching — every
@@ -13,6 +13,22 @@ import { formatPrice } from "@/lib/products";
 // for a bit instead: first visit renders it, everyone after gets it
 // instantly while a fresh copy revalidates in the background.
 export const revalidate = 60;
+
+// Pre-render every known product at build time so opening one is serving
+// static HTML, not a cold render — that's what actually makes it instant.
+// New products from the daily Instagram sync fall back to on-demand
+// rendering (dynamicParams defaults to true) until the next deploy bakes
+// them in too.
+export async function generateStaticParams() {
+  const ids: { id: string }[] = [];
+  let cursor: string | null = null;
+  do {
+    const page = await listProducts({ limit: 48, cursor });
+    ids.push(...page.items.map((p) => ({ id: p.id })));
+    cursor = page.nextCursor;
+  } while (cursor);
+  return ids;
+}
 
 export default async function ProductPage({
   params,
