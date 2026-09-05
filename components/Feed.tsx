@@ -1,14 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-import ProductImage from "./ProductImage";
-import { formatPrice, type Product } from "@/lib/products";
+import FeedTile from "./FeedTile";
+import type { Product } from "@/lib/products";
 
 type Cols = 3 | 4;
 const COLS_KEY = "daryai_cols";
@@ -129,27 +128,7 @@ export default function Feed() {
         className={`grid grid-cols-3 ${colClass[cols]} gap-0.5 sm:gap-1.5 lg:gap-2`}
       >
         {items.map((product, i) => (
-          <Link
-            key={`${product.id}-${i}`}
-            href={`/product/${product.id}`}
-            className="group relative block aspect-[9/16] overflow-hidden bg-neutral-100"
-          >
-            <ProductImage
-              src={product.image}
-              alt={product.name}
-              className="h-full w-full transition duration-300 group-hover:scale-105"
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition group-hover:opacity-100">
-              <span className="truncate text-[11px] font-medium text-white">
-                {product.name}
-              </span>
-              {product.price > 0 && (
-                <span className="shrink-0 text-[11px] text-white/90">
-                  {formatPrice(product.price, product.currency)}
-                </span>
-              )}
-            </div>
-          </Link>
+          <FeedTile key={`${product.id}-${i}`} product={product} />
         ))}
       </div>
 

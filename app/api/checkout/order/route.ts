@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createOrder, getProductsByIds, type OrderItem } from "@/lib/db";
 import { createRazorpayOrder } from "@/lib/razorpay";
+import { COD_FEE_INR } from "@/lib/products";
 import {
   isRazorpayConfigured,
   isFirebaseConfigured,
@@ -10,12 +11,6 @@ import {
 type IncomingItem = { productId: string; size: string; qty: number };
 
 export async function POST(req: Request) {
-  if (!isRazorpayConfigured) {
-    return NextResponse.json(
-      { error: "Razorpay is not configured on the server." },
-      { status: 503 },
-    );
-  }
   if (!isFirebaseConfigured) {
     return NextResponse.json(
       { error: "Firebase is not configured — orders can't be stored." },
@@ -28,6 +23,16 @@ export async function POST(req: Request) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const paymentMethod: "online" | "cod" =
+    body.paymentMethod === "cod" ? "cod" : "online";
+
+  if (paymentMethod === "online" && !isRazorpayConfigured) {
+    return NextResponse.json(
+      { error: "Razorpay is not configured on the server." },
+      { status: 503 },
+    );
   }
 
   const rawItems: IncomingItem[] = Array.isArray(body.items) ? body.items : [];
@@ -77,8 +82,39 @@ export async function POST(req: Request) {
     });
   }
 
-  const amount = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const itemsTotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const codFee = paymentMethod === "cod" ? COD_FEE_INR : 0;
+  const amount = itemsTotal + codFee;
 
+  // Cash on delivery — no online payment, confirm the order right away.
+  if (paymentMethod === "cod") {
+    try {
+      const orderId = await createOrder({
+        status: "cod",
+        paymentMethod: "cod",
+        codFee,
+        items,
+        amount,
+        currency: "INR",
+        customer,
+        createdAt: Date.now(),
+      });
+      return NextResponse.json({
+        orderId,
+        paymentMethod: "cod",
+        amount,
+        codFee,
+        customer,
+      });
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: err.message || "Could not place order" },
+        { status: 500 },
+      );
+    }
+  }
+
+  // Online (prepaid / "Express") — create a Razorpay order to pay now.
   try {
     const rzp = await createRazorpayOrder({
       amountInr: amount,
@@ -88,6 +124,7 @@ export async function POST(req: Request) {
 
     const orderId = await createOrder({
       status: "created",
+      paymentMethod: "online",
       items,
       amount,
       currency: "INR",
@@ -98,6 +135,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       orderId,
+      paymentMethod: "online",
       razorpayOrderId: rzp.id,
       amount: rzp.amount, // paise
       currency: rzp.currency,

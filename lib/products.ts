@@ -1,6 +1,9 @@
 // Product type + seed data. Seed data is used only when Firestore is not
 // configured, so the storefront always renders something.
 
+/** Extra charge for paying cash on delivery instead of online. */
+export const COD_FEE_INR = 250;
+
 export type SizeVariant = {
   label: string;
   stock: number; // informational; not strictly enforced in this MVP

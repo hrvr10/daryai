@@ -214,9 +214,12 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
-  status: "created" | "paid" | "failed";
+  status: "created" | "paid" | "failed" | "cod";
+  paymentMethod: "online" | "cod";
+  /** Cash-on-delivery surcharge included in `amount`, if any. */
+  codFee?: number;
   items: OrderItem[];
-  amount: number; // INR whole rupees
+  amount: number; // INR whole rupees, includes codFee
   currency: string;
   customer: {
     name: string;

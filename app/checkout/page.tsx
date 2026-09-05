@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart, type CartLine } from "@/lib/CartContext";
-import { formatPrice } from "@/lib/products";
+import { formatPrice, COD_FEE_INR } from "@/lib/products";
 import { indianStates } from "@/lib/indianStates";
 import { getBuyNow, clearBuyNow } from "@/lib/buyNow";
 import OrderSummary from "@/components/checkout/OrderSummary";
@@ -39,6 +39,9 @@ export default function CheckoutPage() {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
+    "online",
+  );
 
   // "Buy now" checks out a single item held in sessionStorage instead of the
   // shared cart — read it once on mount (needs `window`, so this can't run
@@ -57,6 +60,8 @@ export default function CheckoutPage() {
     ? (buyNowLine ? buyNowLine.price * buyNowLine.qty : 0)
     : cart.subtotal;
   const count = lines.length;
+  const codFee = paymentMethod === "cod" ? COD_FEE_INR : 0;
+  const total = subtotal + codFee;
 
   if (!ready) return null;
 
@@ -107,10 +112,19 @@ export default function CheckoutPage() {
             qty: l.qty,
           })),
           customer,
+          paymentMethod,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not start checkout");
+
+      // Cash on delivery — no online payment step, the order is confirmed.
+      if (data.paymentMethod === "cod") {
+        if (isBuyNow) clearBuyNow();
+        else cart.clear();
+        router.push(`/checkout/success?order=${data.orderId}`);
+        return;
+      }
 
       const ok = await loadRazorpay();
       if (!ok) throw new Error("Could not load Razorpay. Check your connection.");
@@ -184,17 +198,17 @@ export default function CheckoutPage() {
               </svg>
               Show order summary
             </span>
-            <span className="font-medium">{formatPrice(subtotal)}</span>
+            <span className="font-medium">{formatPrice(total)}</span>
           </summary>
           <div className="border-t border-neutral-200 p-4">
-            <OrderSummary lines={lines} subtotal={subtotal} />
+            <OrderSummary lines={lines} subtotal={subtotal} codFee={codFee} />
           </div>
         </details>
 
         {/* Desktop summary panel */}
         <div className="order-2 hidden sm:block">
           <div className="sticky top-20 rounded-md border border-neutral-200 bg-neutral-50 p-5">
-            <OrderSummary lines={lines} subtotal={subtotal} />
+            <OrderSummary lines={lines} subtotal={subtotal} codFee={codFee} />
           </div>
         </div>
 
@@ -265,17 +279,63 @@ export default function CheckoutPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-base font-semibold">Payment</h2>
+            <h2 className="mb-3 text-base font-semibold">Shipping &amp; payment</h2>
             <p className="mb-3 text-xs text-neutral-500">
               All transactions are secure and encrypted.
             </p>
-            <div className="rounded-md border border-neutral-800 bg-neutral-50 p-4">
-              <div className="flex items-center justify-between text-sm font-medium">
-                <span>Razorpay Secure (UPI, Cards, Netbanking, Wallets)</span>
-              </div>
-              <p className="mt-2 text-xs text-neutral-500">
-                You&apos;ll complete payment in a secure Razorpay window.
-              </p>
+            <div className="space-y-2">
+              <label
+                className={`block cursor-pointer rounded-md border p-4 transition-colors ${
+                  paymentMethod === "online"
+                    ? "border-neutral-800 bg-neutral-50"
+                    : "border-neutral-300 hover:border-neutral-400"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="online"
+                    checked={paymentMethod === "online"}
+                    onChange={() => setPaymentMethod("online")}
+                    className="h-4 w-4 accent-black"
+                  />
+                  <span className="text-sm font-medium">
+                    Express — pay online
+                  </span>
+                </div>
+                <p className="ml-7 mt-1 text-xs text-neutral-500">
+                  Razorpay Secure (UPI, cards, netbanking, wallets). You&apos;ll
+                  complete payment in a secure Razorpay window.
+                </p>
+              </label>
+
+              <label
+                className={`block cursor-pointer rounded-md border p-4 transition-colors ${
+                  paymentMethod === "cod"
+                    ? "border-neutral-800 bg-neutral-50"
+                    : "border-neutral-300 hover:border-neutral-400"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={() => setPaymentMethod("cod")}
+                    className="h-4 w-4 accent-black"
+                  />
+                  <span className="text-sm font-medium">Cash on delivery</span>
+                </div>
+                <p className="ml-7 mt-1 text-xs text-neutral-500">
+                  Pay in cash when your order arrives. A{" "}
+                  <span className="font-medium text-neutral-700">
+                    {formatPrice(COD_FEE_INR)} cash-on-delivery fee
+                  </span>{" "}
+                  applies and is added to your total below.
+                </p>
+              </label>
             </div>
           </section>
 
@@ -290,7 +350,11 @@ export default function CheckoutPage() {
             disabled={busy}
             className="w-full rounded-md bg-black px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
           >
-            {busy ? "Starting payment…" : `Pay ${formatPrice(subtotal)}`}
+            {busy
+              ? "Placing order…"
+              : paymentMethod === "cod"
+                ? `Place order — pay ${formatPrice(total)} on delivery`
+                : `Pay ${formatPrice(total)}`}
           </button>
 
           <nav className="flex flex-wrap gap-x-4 gap-y-1 border-t border-neutral-200 pt-4 text-xs text-neutral-500">

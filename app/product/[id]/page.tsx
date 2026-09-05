@@ -31,6 +31,7 @@ export default async function ProductPage({
               src={product.videoUrl}
               poster={product.image || undefined}
               controls
+              autoPlay
               playsInline
               loop
               muted

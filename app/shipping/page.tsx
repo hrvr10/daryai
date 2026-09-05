@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import { business, fullAddress } from "@/lib/business";
+import { COD_FEE_INR, formatPrice } from "@/lib/products";
 
 export const metadata: Metadata = { title: "Shipping Policy — daryai" };
 
@@ -22,6 +23,22 @@ export default function ShippingPage() {
         <a href={`mailto:${business.supportEmail}`}>{business.supportEmail}</a>{" "}
         before ordering and we&apos;ll let you know if it&apos;s possible.
       </p>
+
+      <h2>Shipping options</h2>
+      <p>Choose one of two ways to receive and pay for your order at checkout:</p>
+      <ul>
+        <li>
+          <strong>Express (pay online)</strong> — pay securely online via
+          Razorpay (UPI, cards, netbanking, wallets) and we dispatch right
+          away. No extra fee.
+        </li>
+        <li>
+          <strong>Cash on delivery</strong> — pay in cash when your order
+          arrives. A {formatPrice(COD_FEE_INR)} cash-on-delivery fee applies
+          and is added to your order total, shown clearly at checkout and on
+          your order confirmation before you place the order.
+        </li>
+      </ul>
 
       <h2>Processing &amp; delivery time</h2>
       <p>

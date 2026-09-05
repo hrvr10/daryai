@@ -12,6 +12,7 @@ export default async function SuccessPage({
   const order = searchParams.order
     ? await getOrder(searchParams.order)
     : null;
+  const isCod = order?.paymentMethod === "cod";
 
   return (
     <div className="px-4 py-8 sm:px-0">
@@ -19,7 +20,11 @@ export default async function SuccessPage({
         <div className="text-3xl">✓</div>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">
-            {order?.status === "paid" ? "Payment received" : "Order placed"}
+            {isCod
+              ? "Order confirmed"
+              : order?.status === "paid"
+                ? "Payment received"
+                : "Order placed"}
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
             {order
@@ -33,6 +38,14 @@ export default async function SuccessPage({
               : "Thanks for your order."}
           </p>
         </div>
+
+        {isCod && (
+          <div className="rounded-md bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
+            Pay <span className="font-semibold">{formatPrice(order!.amount)}</span>{" "}
+            in cash when your order arrives — this includes a{" "}
+            {formatPrice(order!.codFee || 0)} cash-on-delivery fee.
+          </div>
+        )}
 
         {order && (
           <div className="space-y-3 rounded-md border border-neutral-200 p-4 text-left text-sm">
@@ -50,10 +63,19 @@ export default async function SuccessPage({
                   <span>{formatPrice(it.price * it.qty)}</span>
                 </li>
               ))}
+              {isCod && order.codFee ? (
+                <li className="flex justify-between gap-4">
+                  <span>Cash on delivery fee</span>
+                  <span>{formatPrice(order.codFee)}</span>
+                </li>
+              ) : null}
             </ul>
             <div className="flex justify-between border-t border-neutral-200 pt-3 font-medium">
               <span>Total</span>
               <span>{formatPrice(order.amount)}</span>
+            </div>
+            <div className="border-t border-neutral-200 pt-3 text-xs text-neutral-500">
+              Payment: {isCod ? "Cash on delivery" : "Paid online via Razorpay"}
             </div>
             {order.customer?.address && (
               <div className="border-t border-neutral-200 pt-3 text-xs text-neutral-500">
