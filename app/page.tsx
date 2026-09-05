@@ -1,18 +1,19 @@
 import Link from "next/link";
 import Feed from "@/components/Feed";
+import { listProducts } from "@/lib/db";
 
-export default function HomePage() {
+// Was a client-only fetch on mount — first paint showed an empty grid
+// until the browser finished hydrating AND round-tripped to Firestore.
+// Fetching the first page here bakes it straight into the served HTML,
+// so a cold visit shows real product tiles immediately.
+export const revalidate = 30;
+
+export default async function HomePage() {
+  const { items, nextCursor } = await listProducts({ limit: 12 });
+
   return (
     <div className="pb-6">
-      <div className="px-4 py-6 sm:px-0 sm:py-10">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          New in
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Scroll the grid. Tap anything you like.
-        </p>
-      </div>
-      <Feed />
+      <Feed initialItems={items} initialCursor={nextCursor} />
 
       {/* Mobile-only entry into the full-screen, swipeable reel view. */}
       <Link

@@ -1,15 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ProductImage from "./ProductImage";
 import { formatPrice, type Product } from "@/lib/products";
 
 export default function FeedTile({ product }: { product: Product }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLAnchorElement>(null);
+  // preload="none" meant a hover had to start the download from scratch —
+  // the play() call had nothing buffered to play yet. Instead, buffer
+  // tiles once they're actually on screen (there are only ever a handful
+  // at a time) so a hover just resumes an already-downloading video.
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: "200px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
     <Link
+      ref={containerRef}
       href={`/product/${product.id}`}
       className="group relative block aspect-[9/16] overflow-hidden bg-neutral-100"
       onMouseEnter={() => videoRef.current?.play().catch(() => {})}
@@ -28,7 +46,7 @@ export default function FeedTile({ product }: { product: Product }) {
           muted
           loop
           playsInline
-          preload="none"
+          preload={inView ? "auto" : "none"}
           className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
         />
       ) : (

@@ -19,20 +19,28 @@ const colClass: Record<Cols, string> = {
   4: "sm:grid-cols-4",
 };
 
-export default function Feed() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+export default function Feed({
+  initialItems = [],
+  initialCursor = null,
+}: {
+  initialItems?: Product[];
+  initialCursor?: string | null;
+}) {
+  const [items, setItems] = useState<Product[]>(initialItems);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [done, setDone] = useState(initialCursor === null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cols, setCols] = useState<Cols>(3);
   const sentinel = useRef<HTMLDivElement | null>(null);
-  const started = useRef(false);
+  // The first page now arrives pre-rendered from the server, so the
+  // mount effect below shouldn't re-fetch it — only later pages.
+  const started = useRef(true);
   // Refs, not state, so the guard is correct even if the "load first page"
   // effect and the infinite-scroll observer's initial (already-intersecting)
   // callback both fire before either state update has landed.
   const loadingRef = useRef(false);
-  const doneRef = useRef(false);
+  const doneRef = useRef(initialCursor === null);
 
   useEffect(() => {
     try {
@@ -105,23 +113,34 @@ export default function Feed() {
 
   return (
     <div>
-      <div className="hidden items-center justify-end gap-1 pb-3 sm:flex">
-        <span className="mr-1 text-xs text-neutral-400">Grid</span>
-        {([3, 4] as Cols[]).map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => chooseCols(c)}
-            aria-pressed={cols === c}
-            className={`h-7 w-7 rounded-md border text-xs ${
-              cols === c
-                ? "border-black bg-black text-white"
-                : "border-neutral-300 text-neutral-600 hover:border-neutral-500"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-4 px-4 py-6 sm:px-0 sm:py-10">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            New in
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            Scroll the grid. Tap anything you like.
+          </p>
+        </div>
+
+        <div className="hidden shrink-0 items-center gap-1 sm:flex">
+          <span className="mr-1 text-xs text-neutral-400">Grid</span>
+          {([3, 4] as Cols[]).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => chooseCols(c)}
+              aria-pressed={cols === c}
+              className={`h-7 w-7 rounded-md border text-xs ${
+                cols === c
+                  ? "border-black bg-black text-white"
+                  : "border-neutral-300 text-neutral-600 hover:border-neutral-500"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div
