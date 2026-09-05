@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductGallery from "@/components/ProductGallery";
 import AddToCart from "@/components/AddToCart";
-import SizeGuide from "@/components/SizeGuide";
-import DeliveryEstimate from "@/components/DeliveryEstimate";
+import SizeGuideDrawer from "@/components/SizeGuideDrawer";
 import { AccordionItem } from "@/components/Accordion";
 import { getProductById, listProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
@@ -60,7 +59,7 @@ export default async function ProductPage({
         ← Back to feed
       </Link>
 
-      <div className="grid gap-8 sm:grid-cols-2 sm:gap-12">
+      <div className="grid items-start gap-8 sm:grid-cols-2 sm:gap-12">
         <ProductGallery slides={slides} alt={product.name} />
 
         <div className="space-y-6">
@@ -94,11 +93,25 @@ export default async function ProductPage({
           <AddToCart product={product} />
 
           <div className="border-t border-neutral-200">
-            <AccordionItem title="Size guide">
-              <SizeGuide />
-            </AccordionItem>
+            <SizeGuideDrawer />
             <AccordionItem title="Shipping &amp; delivery">
-              <DeliveryEstimate />
+              <ul className="list-disc space-y-1.5 pl-4">
+                <li>Dispatched within 1–2 business days of your order.</li>
+                <li>Delivered in 3–7 business days across India.</li>
+                <li>Free shipping on every order.</li>
+                <li>
+                  Cash on delivery available — pay a small confirmation fee
+                  online, the rest on arrival.
+                </li>
+                <li>
+                  Tracking details are emailed to you as soon as your order
+                  ships. Full policy on our{" "}
+                  <a href="/shipping" className="underline hover:text-brand-700">
+                    Shipping page
+                  </a>
+                  .
+                </li>
+              </ul>
             </AccordionItem>
             <AccordionItem title="Care instructions">
               <p>
