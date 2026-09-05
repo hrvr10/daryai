@@ -14,14 +14,20 @@ export type Product = {
   source: "seed" | "instagram" | "manual";
   name: string;
   price: number; // INR, whole rupees
+  /** Struck-through "original" price shown next to `price`, if higher. */
+  compareAtPrice?: number;
   currency: string;
   /** Poster image: an Instagram thumbnail URL, or a /public path for seed. */
   image: string;
+  /** Extra photos (e.g. model shots) shown alongside the reel on the PDP. */
+  images?: string[];
   /** Reel video URL when the product came from an Instagram reel. */
   videoUrl?: string;
   permalink?: string;
   description: string;
   sizes: SizeVariant[];
+  /** Simple colour labels, e.g. ["Black", "Olive"] — no per-colour stock/price. */
+  colors?: string[];
   active: boolean;
   /** Sort key — lower shows first. Instagram sync uses -timestamp. */
   order: number;

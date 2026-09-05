@@ -25,7 +25,7 @@ export default function CartPage() {
         <div className="space-y-6">
           <ul className="divide-y divide-neutral-200 border-y border-neutral-200">
             {lines.map((line) => (
-              <li key={`${line.id}-${line.size}`} className="flex gap-4 py-4">
+              <li key={`${line.id}-${line.size}-${line.color || ""}`} className="flex gap-4 py-4">
                 <Link
                   href={`/product/${line.id}`}
                   className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-neutral-100 sm:h-24 sm:w-24"
@@ -41,9 +41,11 @@ export default function CartPage() {
                   <div className="flex justify-between gap-4">
                     <div>
                       <div className="text-sm font-medium">{line.name}</div>
-                      {line.size && (
+                      {(line.size || line.color) && (
                         <div className="text-xs text-neutral-500">
-                          Size {line.size}
+                          {[line.color, line.size && `Size ${line.size}`]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </div>
                       )}
                     </div>
@@ -58,7 +60,9 @@ export default function CartPage() {
                         type="button"
                         aria-label="Decrease quantity"
                         className="px-2 py-1 text-sm"
-                        onClick={() => setQty(line.id, line.size, line.qty - 1)}
+                        onClick={() =>
+                          setQty(line.id, line.size, line.color, line.qty - 1)
+                        }
                       >
                         −
                       </button>
@@ -69,7 +73,9 @@ export default function CartPage() {
                         type="button"
                         aria-label="Increase quantity"
                         className="px-2 py-1 text-sm"
-                        onClick={() => setQty(line.id, line.size, line.qty + 1)}
+                        onClick={() =>
+                          setQty(line.id, line.size, line.color, line.qty + 1)
+                        }
                       >
                         +
                       </button>
@@ -77,7 +83,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       className="text-xs text-neutral-500 underline"
-                      onClick={() => remove(line.id, line.size)}
+                      onClick={() => remove(line.id, line.size, line.color)}
                     >
                       Remove
                     </button>

@@ -23,6 +23,14 @@ export async function PATCH(
     patch.price = Math.round(price);
   }
 
+  if (body.compareAtPrice !== undefined) {
+    const cap = Number(body.compareAtPrice);
+    patch.compareAtPrice =
+      body.compareAtPrice === null || !Number.isFinite(cap) || cap <= 0
+        ? undefined
+        : Math.round(cap);
+  }
+
   if (Array.isArray(body.sizes)) {
     patch.sizes = body.sizes
       .map(
@@ -32,6 +40,20 @@ export async function PATCH(
         }),
       )
       .filter((s: SizeVariant) => s.label.length > 0);
+  }
+
+  if (Array.isArray(body.colors)) {
+    patch.colors = body.colors
+      .map((c: any) => String(c ?? "").trim())
+      .filter((c: string) => c.length > 0)
+      .slice(0, 20);
+  }
+
+  if (Array.isArray(body.images)) {
+    patch.images = body.images
+      .map((u: any) => String(u ?? "").trim())
+      .filter((u: string) => u.length > 0)
+      .slice(0, 12);
   }
 
   if (typeof body.active === "boolean") patch.active = body.active;

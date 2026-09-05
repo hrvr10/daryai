@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ProductImage from "@/components/ProductImage";
+import ProductGallery from "@/components/ProductGallery";
 import AddToCart from "@/components/AddToCart";
+import SizeGuide from "@/components/SizeGuide";
+import DeliveryEstimate from "@/components/DeliveryEstimate";
 import { getProductById } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 
@@ -15,6 +17,18 @@ export default async function ProductPage({
   const product = await getProductById(params.id);
   if (!product) notFound();
 
+  const slides = [
+    ...(product.videoUrl
+      ? [{ kind: "video" as const, src: product.videoUrl, poster: product.image }]
+      : product.image
+        ? [{ kind: "image" as const, src: product.image }]
+        : []),
+    ...(product.images || []).map((src) => ({ kind: "image" as const, src })),
+  ];
+
+  const hasDiscount =
+    product.compareAtPrice != null && product.compareAtPrice > product.price;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-5 sm:px-0 sm:py-8">
       <Link
@@ -25,26 +39,7 @@ export default async function ProductPage({
       </Link>
 
       <div className="grid gap-8 sm:grid-cols-2 sm:gap-10">
-        <div className="aspect-[9/16] overflow-hidden rounded-md bg-neutral-100 sm:mx-auto sm:max-w-sm">
-          {product.videoUrl ? (
-            <video
-              src={product.videoUrl}
-              poster={product.image || undefined}
-              controls
-              autoPlay
-              playsInline
-              loop
-              muted
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <ProductImage
-              src={product.image}
-              alt={product.name}
-              className="h-full w-full"
-            />
-          )}
-        </div>
+        <ProductGallery slides={slides} alt={product.name} />
 
         <div className="space-y-5">
           <div>
@@ -52,8 +47,13 @@ export default async function ProductPage({
               {product.name}
             </h1>
             {product.price > 0 && (
-              <div className="mt-1 text-lg">
-                {formatPrice(product.price, product.currency)}
+              <div className="mt-1 flex items-baseline gap-2 text-lg">
+                <span>{formatPrice(product.price, product.currency)}</span>
+                {hasDiscount && (
+                  <span className="text-sm text-neutral-400 line-through">
+                    {formatPrice(product.compareAtPrice!, product.currency)}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -65,6 +65,12 @@ export default async function ProductPage({
           )}
 
           <AddToCart product={product} />
+
+          <div className="flex items-center gap-4 border-t border-neutral-200 pt-4">
+            <SizeGuide />
+          </div>
+
+          <DeliveryEstimate />
 
           {product.permalink && (
             <a

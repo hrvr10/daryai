@@ -8,8 +8,9 @@ import { formatPrice, type Product } from "@/lib/products";
 // mounted. Everything outside this window only shows the poster image —
 // keeps memory/bandwidth bounded while making the next swipe feel instant
 // because that video has already been downloading in the background.
+// Ahead is 2 (not 1) so a fast multi-swipe session still has runway.
 const PRELOAD_BEHIND = 1;
-const PRELOAD_AHEAD = 1;
+const PRELOAD_AHEAD = 2;
 
 export default function ReelFeed() {
   const [items, setItems] = useState<Product[]>([]);
@@ -30,7 +31,7 @@ export default function ReelFeed() {
     loadingRef.current = true;
     try {
       const url = new URL("/api/products", window.location.origin);
-      url.searchParams.set("limit", "8");
+      url.searchParams.set("limit", "6");
       if (cursorRef.current) url.searchParams.set("cursor", cursorRef.current);
       const res = await fetch(url);
       const data = await res.json();
@@ -108,6 +109,33 @@ export default function ReelFeed() {
     tapIconTimer.current = setTimeout(() => setTapIcon(null), 550);
   }
 
+  // Warm up the connection to each upcoming video's CDN host (DNS + TLS)
+  // before the <video> element even requests it — shaves real latency off
+  // the moment a swipe lands on a reel that hasn't started buffering yet.
+  useEffect(() => {
+    const created: HTMLLinkElement[] = [];
+    items.forEach((p, i) => {
+      const distance = i - activeIndex;
+      if (distance < -PRELOAD_BEHIND || distance > PRELOAD_AHEAD + 1) return;
+      if (!p.videoUrl) return;
+      let origin: string;
+      try {
+        origin = new URL(p.videoUrl).origin;
+      } catch {
+        return;
+      }
+      if (document.querySelector(`link[data-reel-preconnect="${origin}"]`)) return;
+      const link = document.createElement("link");
+      link.rel = "preconnect";
+      link.href = origin;
+      link.crossOrigin = "anonymous";
+      link.dataset.reelPreconnect = origin;
+      document.head.appendChild(link);
+      created.push(link);
+    });
+    return () => created.forEach((l) => l.remove());
+  }, [items, activeIndex]);
+
   function togglePlay(index: number) {
     const video = videoRefs.current.get(index);
     if (!video) return;
@@ -174,7 +202,10 @@ export default function ReelFeed() {
 
       <div
         ref={containerRef}
-        className="h-full w-full snap-y snap-mandatory overflow-y-scroll scroll-smooth"
+        // No `scroll-smooth`: that forces an eased animation on every
+        // scroll, which actually fights fast successive swipes and feels
+        // laggier than just letting native touch/snap physics take over.
+        className="h-full w-full snap-y snap-mandatory overflow-y-scroll"
       >
         {items.map((product, i) => {
           const distance = i - activeIndex;

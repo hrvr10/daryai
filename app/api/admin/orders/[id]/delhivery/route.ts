@@ -35,7 +35,10 @@ export async function POST(
 
   const isCod = order.paymentMethod === "cod";
   const productsDescription = order.items
-    .map((i) => `${i.name}${i.size ? ` (${i.size})` : ""} x${i.qty}`)
+    .map((i) => {
+      const variant = [i.color, i.size].filter(Boolean).join(" ");
+      return `${i.name}${variant ? ` (${variant})` : ""} x${i.qty}`;
+    })
     .join(", ")
     .slice(0, 500);
 

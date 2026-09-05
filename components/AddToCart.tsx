@@ -11,7 +11,9 @@ export default function AddToCart({ product }: { product: Product }) {
   const router = useRouter();
   const { add } = useCart();
   const sizeLabels = product.sizes.map((s) => s.label);
+  const colorLabels = product.colors || [];
   const [size, setSize] = useState<string>(sizeLabels[0] ?? "");
+  const [color, setColor] = useState<string>(colorLabels[0] ?? "");
   const [added, setAdded] = useState(false);
   const [buying, setBuying] = useState(false);
 
@@ -31,6 +33,7 @@ export default function AddToCart({ product }: { product: Product }) {
     price: product.price,
     image: product.image,
     size,
+    color: color || undefined,
   };
 
   function handleBuyNow() {
@@ -41,6 +44,28 @@ export default function AddToCart({ product }: { product: Product }) {
 
   return (
     <div className="space-y-4">
+      {colorLabels.length > 0 && (
+        <div>
+          <div className="mb-2 text-sm font-medium">Colour</div>
+          <div className="flex flex-wrap gap-2">
+            {colorLabels.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                className={`rounded-md border px-3 py-2 text-sm ${
+                  color === c
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300 hover:border-neutral-500"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {sizeLabels.length > 0 && (
         <div>
           <div className="mb-2 text-sm font-medium">Size</div>

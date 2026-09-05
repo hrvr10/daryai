@@ -60,7 +60,10 @@ export default async function SuccessPage({
                 <li key={i} className="flex justify-between gap-4">
                   <span>
                     {it.name}
-                    {it.size ? ` · ${it.size}` : ""} × {it.qty}
+                    {[it.color, it.size].filter(Boolean).length > 0
+                      ? ` · ${[it.color, it.size].filter(Boolean).join(" · ")}`
+                      : ""}{" "}
+                    × {it.qty}
                   </span>
                   <span>{formatPrice(it.price * it.qty)}</span>
                 </li>

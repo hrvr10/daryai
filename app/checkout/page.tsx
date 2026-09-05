@@ -134,6 +134,7 @@ export default function CheckoutPage() {
           items: lines.map((l) => ({
             productId: l.id,
             size: l.size,
+            color: l.color,
             qty: l.qty,
           })),
           customer,

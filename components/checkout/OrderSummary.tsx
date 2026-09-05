@@ -18,7 +18,10 @@ export default function OrderSummary({
     <div className="space-y-5">
       <ul className="space-y-4">
         {lines.map((line) => (
-          <li key={`${line.id}-${line.size}`} className="flex items-center gap-3">
+          <li
+            key={`${line.id}-${line.size}-${line.color || ""}`}
+            className="flex items-center gap-3"
+          >
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100">
               <ProductImage src={line.image} alt={line.name} className="h-full w-full" />
               <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-700 text-[10px] font-medium text-white">
@@ -27,8 +30,12 @@ export default function OrderSummary({
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{line.name}</div>
-              {line.size && (
-                <div className="text-xs text-neutral-500">Size {line.size}</div>
+              {(line.size || line.color) && (
+                <div className="text-xs text-neutral-500">
+                  {[line.color, line.size && `Size ${line.size}`]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
               )}
             </div>
             <div className="shrink-0 text-sm">

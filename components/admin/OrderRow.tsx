@@ -87,7 +87,10 @@ export default function OrderRow({
         {order.items.map((it, i) => (
           <li key={i}>
             {it.name}
-            {it.size ? ` · ${it.size}` : ""} × {it.qty} —{" "}
+            {[it.color, it.size].filter(Boolean).length > 0
+              ? ` · ${[it.color, it.size].filter(Boolean).join(" · ")}`
+              : ""}{" "}
+            × {it.qty} —{" "}
             {formatPrice(it.price * it.qty)}
           </li>
         ))}

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { checkPincodeServiceability } from "@/lib/delhivery";
+import { checkPincodeServiceability, getExpectedTat } from "@/lib/delhivery";
 import { isDelhiveryConfigured } from "@/lib/config";
 
-// Public, read-only lookup used to show a soft warning at checkout if a PIN
-// code isn't serviceable. Never blocks checkout on its own — best-effort.
+// Public, read-only lookup — used both at checkout (soft warning if a PIN
+// isn't serviceable) and on product pages (estimated delivery time).
+// Never blocks anything on its own — best-effort, degrades to "not checked".
 export async function GET(req: Request) {
   if (!isDelhiveryConfigured) {
     return NextResponse.json({ checked: false });
@@ -17,13 +18,22 @@ export async function GET(req: Request) {
 
   try {
     const result = await checkPincodeServiceability(pincode);
+    let estimatedDays: number | null = null;
+    if (result.serviceable) {
+      try {
+        estimatedDays = (await getExpectedTat(pincode)).days;
+      } catch {
+        /* TAT is a bonus — serviceability is the important part */
+      }
+    }
     return NextResponse.json({
       checked: true,
       serviceable: result.serviceable,
       codAvailable: result.codAvailable,
+      estimatedDays,
     });
   } catch {
-    // Delhivery hiccup — don't block checkout over it.
+    // Delhivery hiccup — don't block checkout/browsing over it.
     return NextResponse.json({ checked: false });
   }
 }

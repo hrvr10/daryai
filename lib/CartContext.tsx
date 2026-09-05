@@ -17,6 +17,7 @@ export type CartLine = {
   price: number;
   image: string;
   size: string;
+  color?: string;
   qty: number;
 };
 
@@ -25,8 +26,8 @@ type CartContextValue = {
   count: number;
   subtotal: number;
   add: (line: Omit<CartLine, "qty">, qty?: number) => void;
-  setQty: (id: string, size: string, qty: number) => void;
-  remove: (id: string, size: string) => void;
+  setQty: (id: string, size: string, color: string | undefined, qty: number) => void;
+  remove: (id: string, size: string, color?: string) => void;
   clear: () => void;
 };
 
@@ -57,11 +58,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [lines, hydrated]);
 
   const value = useMemo<CartContextValue>(() => {
+    const sameLine = (l: CartLine, id: string, size: string, color?: string) =>
+      l.id === id && l.size === size && (l.color || undefined) === (color || undefined);
+
     const add: CartContextValue["add"] = (line, qty = 1) => {
       setLines((prev) => {
-        const i = prev.findIndex(
-          (l) => l.id === line.id && l.size === line.size,
-        );
+        const i = prev.findIndex((l) => sameLine(l, line.id, line.size, line.color));
         if (i === -1) return [...prev, { ...line, qty }];
         const next = [...prev];
         next[i] = { ...next[i], qty: next[i].qty + qty, price: line.price };
@@ -69,18 +71,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    const setQty: CartContextValue["setQty"] = (id, size, qty) => {
+    const setQty: CartContextValue["setQty"] = (id, size, color, qty) => {
       setLines((prev) =>
         prev
           .map((l) =>
-            l.id === id && l.size === size ? { ...l, qty: Math.max(0, qty) } : l,
+            sameLine(l, id, size, color) ? { ...l, qty: Math.max(0, qty) } : l,
           )
           .filter((l) => l.qty > 0),
       );
     };
 
-    const remove: CartContextValue["remove"] = (id, size) =>
-      setLines((prev) => prev.filter((l) => !(l.id === id && l.size === size)));
+    const remove: CartContextValue["remove"] = (id, size, color) =>
+      setLines((prev) => prev.filter((l) => !sameLine(l, id, size, color)));
 
     const clear = () => setLines([]);
 

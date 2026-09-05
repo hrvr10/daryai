@@ -8,7 +8,12 @@ import {
   razorpayConfig,
 } from "@/lib/config";
 
-type IncomingItem = { productId: string; size: string; qty: number };
+type IncomingItem = {
+  productId: string;
+  size: string;
+  color?: string;
+  qty: number;
+};
 
 export async function POST(req: Request) {
   if (!isFirebaseConfigured) {
@@ -79,6 +84,7 @@ export async function POST(req: Request) {
       productId: p.id,
       name: p.name,
       size: String(it.size ?? ""),
+      color: it.color ? String(it.color) : undefined,
       qty,
       price: p.price,
     });

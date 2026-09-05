@@ -1,5 +1,6 @@
 import "server-only";
 import { delhiveryConfig } from "./config";
+import { business } from "./business";
 
 // Delhivery B2C API — https://one.delhivery.com/developer-portal/documents/b2c/
 // staging-express.delhivery.com for testing, track.delhivery.com once your
@@ -64,6 +65,36 @@ export async function checkPincodeServiceability(
     prepaidAvailable: postal.pre_paid === "Y" || true,
     raw: body,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Expected delivery time (TAT) from our warehouse to a customer's PIN code.
+// ---------------------------------------------------------------------------
+
+export async function getExpectedTat(
+  destinationPin: string,
+): Promise<{ days: number | null; raw: any }> {
+  const url =
+    `${BASE}/api/dc/expected_tat?` +
+    new URLSearchParams({
+      origin_pin: business.address.pincode,
+      destination_pin: destinationPin,
+      mot: "S", // Surface — matches the shipping_mode used in createShipment
+      pdt: "B2C",
+    });
+  const res = await fetch(url, { headers: authHeaders() });
+  const raw = await readJson(res);
+
+  // No sample response is published for this endpoint; try the field names
+  // Delhivery is known to use and fall back to "unknown" rather than guess.
+  const candidate =
+    raw?.data?.tat ??
+    raw?.tat ??
+    raw?.expected_tat ??
+    raw?.days ??
+    raw?.data?.expected_tat_days;
+  const days = Number.isFinite(Number(candidate)) ? Number(candidate) : null;
+  return { days, raw };
 }
 
 // ---------------------------------------------------------------------------

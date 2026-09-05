@@ -21,12 +21,16 @@ function normalizeProduct(id: string, data: any): Product {
     source: data.source ?? "manual",
     name: data.name ?? "Untitled",
     price: Number(data.price ?? 0),
+    compareAtPrice:
+      data.compareAtPrice != null ? Number(data.compareAtPrice) : undefined,
     currency: data.currency ?? "INR",
     image: data.image ?? "",
+    images: Array.isArray(data.images) ? (data.images as string[]) : undefined,
     videoUrl: data.videoUrl ?? undefined,
     permalink: data.permalink ?? undefined,
     description: data.description ?? "",
     sizes: Array.isArray(data.sizes) ? (data.sizes as SizeVariant[]) : [],
+    colors: Array.isArray(data.colors) ? (data.colors as string[]) : undefined,
     active: data.active !== false,
     order: Number(data.order ?? 0),
     createdAt: Number(data.createdAt ?? 0),
@@ -97,7 +101,18 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
 }
 
 export type ProductPatch = Partial<
-  Pick<Product, "price" | "sizes" | "active" | "name" | "description" | "order">
+  Pick<
+    Product,
+    | "price"
+    | "compareAtPrice"
+    | "sizes"
+    | "colors"
+    | "images"
+    | "active"
+    | "name"
+    | "description"
+    | "order"
+  >
 >;
 
 export async function updateProduct(
@@ -208,6 +223,7 @@ export type OrderItem = {
   productId: string;
   name: string;
   size: string;
+  color?: string;
   qty: number;
   price: number;
 };

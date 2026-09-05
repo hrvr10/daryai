@@ -1,27 +1,38 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ProductRow, { type SaveState } from "./ProductRow";
+import ProductRow, { type Draft, type SaveState } from "./ProductRow";
 import type { Product } from "@/lib/products";
-
-type Draft = { price: string; sizes: string; active: boolean };
 
 function draftOf(p: Product): Draft {
   return {
+    name: p.name,
+    description: p.description || "",
     price: String(p.price || ""),
+    compareAtPrice: p.compareAtPrice ? String(p.compareAtPrice) : "",
     sizes: p.sizes.map((s) => s.label).join(", "),
+    colors: (p.colors || []).join(", "),
+    images: p.images || [],
     active: p.active,
   };
 }
 
 function toPatch(draft: Draft) {
   return {
+    name: draft.name,
+    description: draft.description,
     price: Number(draft.price) || 0,
+    compareAtPrice: draft.compareAtPrice ? Number(draft.compareAtPrice) : null,
     sizes: draft.sizes
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean)
       .map((label) => ({ label, stock: 10 })),
+    colors: draft.colors
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean),
+    images: draft.images,
     active: draft.active,
   };
 }
@@ -187,15 +198,11 @@ export default function ProductsAdmin({ products }: { products: Product[] }) {
           <ProductRow
             key={p.id}
             product={p}
-            price={drafts[p.id].price}
-            sizes={drafts[p.id].sizes}
-            active={drafts[p.id].active}
+            draft={drafts[p.id]}
             dirty={dirty.has(p.id)}
             saveState={saveState[p.id] || "idle"}
             errorMsg={errorMsg[p.id]}
-            onPriceChange={(v) => updateDraft(p.id, { price: v })}
-            onSizesChange={(v) => updateDraft(p.id, { sizes: v })}
-            onActiveChange={(v) => updateDraft(p.id, { active: v })}
+            onChange={(patch) => updateDraft(p.id, patch)}
             onSave={() => saveOne(p.id)}
           />
         ))}
