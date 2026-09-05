@@ -8,9 +8,10 @@ import { formatPrice, type Product } from "@/lib/products";
 // mounted. Everything outside this window only shows the poster image —
 // keeps memory/bandwidth bounded while making the next swipe feel instant
 // because that video has already been downloading in the background.
-// Ahead is 2 (not 1) so a fast multi-swipe session still has runway.
+// Keep this tight: preloading more than one ahead means several videos
+// buffer at once, which starves the active one's bandwidth on mobile.
 const PRELOAD_BEHIND = 1;
-const PRELOAD_AHEAD = 2;
+const PRELOAD_AHEAD = 1;
 
 export default function ReelFeed() {
   const [items, setItems] = useState<Product[]>([]);

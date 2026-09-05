@@ -5,7 +5,7 @@ import { CartProvider } from "@/lib/CartContext";
 import SiteChrome from "@/components/SiteChrome";
 
 const gotu = localFont({
-  src: "./fonts/Gotu-Regular.ttf",
+  src: "./fonts/Gotu-Regular.woff2",
   variable: "--font-gotu",
   display: "swap",
 });

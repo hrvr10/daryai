@@ -14,7 +14,9 @@ export async function GET(req: Request) {
       includeInactive: false,
     });
     return NextResponse.json(page, {
-      headers: { "Cache-Control": "no-store" },
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+      },
     });
   } catch (err: any) {
     return NextResponse.json(
